@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Registro</title>
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Libre+Franklin:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+<style>
+
+:root { --ink:#201B3D; --ink-soft:#726B90; --paper:#FBF3E3; --page-bg:#1B1F3B; --red:#E8543E; --green:#1F9D6C; --gold:#F2B705; --gold-deep:#C9860A; --rule:#D8C9A8; }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { margin:0; padding:0; }
+body { background:var(--page-bg); min-height:100vh; min-height:100dvh; padding:32px 16px 90px; position:relative;
+  font-family:'Libre Franklin', ui-sans-serif, system-ui, sans-serif; color:var(--ink); -webkit-text-size-adjust:100%; }
+button { -webkit-appearance:none; appearance:none; border-radius:0; font-family:inherit; cursor:pointer; touch-action:manipulation; }
+input, select, textarea { -webkit-appearance:none; appearance:none; border-radius:0; font-family:inherit; }
+select { background-image:
+    linear-gradient(45deg, transparent 50%, var(--ink) 50%),
+    linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+  background-position: calc(100% - 16px) center, calc(100% - 11px) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 32px !important; }
+
+.receipt { position:relative; max-width:780px; margin:0 auto; background:var(--paper); padding:40px 32px 40px; box-shadow:12px 12px 0 var(--ink); }
+@media (max-width:600px) { .receipt { padding:28px 18px 30px; box-shadow:7px 7px 0 var(--ink); } }
+
+.setup-banner { display:flex; flex-direction:column; gap:6px; background:#FFF4D6; color:#7A5A00; padding:12px 14px; font-size:13px; border:2px solid var(--gold-deep); margin-bottom:18px; }
+.sync-banner { display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:12px; color:var(--ink-soft); margin-bottom:16px; }
+.sync-dot { width:8px; height:8px; border-radius:50%; background:var(--rule); flex:0 0 auto; }
+.sync-dot.ok { background:var(--green); }
+.sync-dot.pending { background:var(--gold); }
+.sync-dot.error { background:var(--red); }
+
+.backup-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:22px; padding:12px 14px; background:rgba(32,27,61,0.05); border-left:4px solid var(--gold-deep); font-size:13px; color:var(--ink-soft); }
+.backup-bar button { font-family:'Libre Franklin', sans-serif; font-weight:600; font-size:12px; padding:6px 12px; border:2px solid var(--ink); background:var(--ink); color:var(--paper); cursor:pointer; }
+.backup-bar button.btn-outline { background:transparent; color:var(--ink); }
+.import-message { font-size:12px; margin:0; }
+.import-message.ok { color:var(--green); } .import-message.error { color:var(--red); }
+
+.hero-top { margin-bottom:22px; }
+.wordmark { font-family:'Space Mono', ui-monospace, monospace; font-weight:700; font-size:32px; margin:0; color:var(--gold-deep); letter-spacing:-0.01em; }
+.title-accent { display:flex; gap:5px; margin:12px 0 14px; }
+.title-accent span { display:block; width:26px; height:5px; }
+.title-accent span:nth-child(1) { background:var(--gold); }
+.title-accent span:nth-child(2) { background:var(--red); }
+.title-accent span:nth-child(3) { background:var(--green); }
+.tagline { margin:0; color:var(--ink-soft); font-size:14px; max-width:38ch; }
+
+.hero-balance-label { font-size:13px; color:var(--ink-soft); margin:18px 0 4px; }
+.hero-balance-value { font-family:'Space Mono', monospace; font-weight:700; font-size:52px; line-height:1; display:inline-block; }
+.hero-balance-value.pos { color:var(--green); } .hero-balance-value.neg { color:var(--red); }
+.hero-balance-value.flash { animation:pulse 0.6s ease; }
+@keyframes pulse { 0%{transform:scale(1);} 35%{transform:scale(1.05);} 100%{transform:scale(1);} }
+.hero-delta { font-size:13px; color:var(--ink-soft); margin:6px 0 22px; }
+.hero-delta.pos { color:var(--green); } .hero-delta.neg { color:var(--red); }
+
+.hero-figures { display:flex; gap:30px; flex-wrap:wrap; margin-bottom:22px; }
+.hero-figure-label { font-size:12px; color:var(--ink-soft); display:block; margin-bottom:2px; }
+.hero-figure-value { font-family:'Space Mono', monospace; font-weight:600; font-size:19px; }
+.hero-figure-value.pos { color:var(--green); } .hero-figure-value.neg { color:var(--red); }
+
+.period-tabs { display:flex; border:2px solid var(--ink); margin-bottom:14px; width:fit-content; }
+.period-tabs button { font-family:'Libre Franklin', sans-serif; padding:8px 14px; font-size:13px; background:transparent; border:none; color:var(--ink-soft); border-right:2px solid var(--ink); }
+.period-tabs button:last-child { border-right:none; }
+.period-tabs button.period-active { background:var(--ink); color:var(--paper); }
+
+.period-nav { display:flex; align-items:center; gap:12px; }
+.period-nav button.nav-arrow { font-family:'Space Mono', monospace; background:transparent; border:2px solid var(--ink); width:30px; height:30px; font-size:16px; color:var(--ink); }
+.period-label { font-size:14px; color:var(--ink-soft); text-transform:capitalize; }
+.btn-today { font-family:'Libre Franklin', sans-serif; background:transparent; border:none; text-decoration:underline; font-size:12px; color:var(--ink-soft); cursor:pointer; }
+
+.tear { border:none; border-top:2px solid var(--rule); margin:34px 0 0; padding-top:34px; }
+
+.wallets-row { display:flex; gap:16px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding:10px 6px 18px; }
+.wallet-tab-wrap { position:relative; flex:0 0 auto; }
+.wallet-stub { background:var(--wc, var(--ink)); border:2px solid var(--ink); padding:14px 18px; min-width:132px; cursor:pointer;
+  font-family:inherit; text-align:left; color:#fff; box-shadow:4px 4px 0 var(--ink); transform:rotate(var(--tilt,0deg)); }
+@media (hover:hover) and (pointer:fine) { .wallet-stub:hover { transform:rotate(0deg); box-shadow:6px 6px 0 var(--ink); } }
+.wallet-stub-name { display:block; font-size:12px; color:rgba(255,255,255,0.82); padding-bottom:6px; margin-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.32); }
+.wallet-stub-balance { font-family:'Space Mono', monospace; font-weight:700; font-size:17px; color:#fff; }
+.wallet-add-stub { border:2px dashed var(--ink-soft); color:var(--ink-soft); display:flex; align-items:center; justify-content:center; min-width:110px; background:transparent; }
+.wallet-stub-active { box-shadow:4px 4px 0 var(--gold) !important; transform:rotate(0deg) !important; }
+.wallets-empty-hint { color:var(--ink-soft); font-size:13px; margin:4px 0 0; }
+
+.wallet-edit-panel { background:#fff; border:2px solid var(--ink); padding:14px; margin-top:14px; display:flex; flex-direction:column; gap:10px; max-width:280px; box-shadow:5px 5px 0 var(--ink); }
+.wallet-edit-panel label { display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--ink-soft); }
+.wallet-edit-panel input { font-family:inherit; padding:7px 8px; border:1px solid var(--rule); font-size:16px; }
+.wallet-edit-actions { display:flex; gap:8px; flex-wrap:wrap; }
+
+.btn-small { font-family:'Libre Franklin', sans-serif; font-size:12px; font-weight:600; padding:6px 10px; border:2px solid var(--ink); background:var(--ink); color:var(--paper); }
+.btn-small.btn-ghost { background:transparent; color:var(--ink-soft); border-color:var(--rule); }
+.btn-small.btn-danger { background:var(--red); border-color:var(--red); }
+
+.section-heading { font-family:'Space Mono', monospace; font-weight:700; font-size:16px; margin:0 0 18px; }
+.grid-two { display:grid; grid-template-columns:1fr 1fr; gap:38px; align-items:start; }
+@media (max-width:760px) { .grid-two { grid-template-columns:1fr; } }
+
+.segmented { display:flex; border:2px solid var(--ink); margin-bottom:18px; }
+.segmented button { flex:1; padding:10px; background:transparent; border:none; font-family:'Libre Franklin', sans-serif; font-size:14px; color:var(--ink-soft); }
+.segmented button.seg-active.seg-income { background:var(--green); color:#fff; }
+.segmented button.seg-active.seg-expense { background:var(--red); color:#fff; }
+
+.field { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; font-size:13px; color:var(--ink-soft); }
+.field input, .field select { font-family:'Libre Franklin', sans-serif; font-size:16px; padding:9px 10px; border:2px solid var(--rule); background:#fff; color:var(--ink); }
+.amount-input { display:flex; align-items:center; border:2px solid var(--rule); background:#fff; }
+.currency-prefix { padding:0 0 0 10px; color:var(--ink-soft); font-family:'Space Mono', monospace; }
+.amount-input input { border:none; flex:1; outline:none; }
+
+.form-actions { display:flex; gap:14px; align-items:center; margin-top:6px; flex-wrap:wrap; }
+.btn-primary { font-family:'Space Mono', monospace; font-weight:700; background:var(--ink); color:var(--paper); border:2px solid var(--ink); padding:12px 20px; font-size:14px; box-shadow:4px 4px 0 var(--gold); }
+.btn-primary:disabled { opacity:0.45; cursor:not-allowed; box-shadow:none; }
+.btn-ghost { font-family:'Libre Franklin', sans-serif; background:transparent; border:2px solid var(--ink); padding:9px 14px; font-size:13px; color:var(--ink); }
+.btn-ghost.btn-danger { color:var(--red); border-color:var(--red); }
+
+.breakdown-block { margin-bottom:36px; }
+.breakdown-heading { font-size:14px; font-weight:600; margin:0 0 14px; color:var(--ink); }
+.coin-frame { width:172px; height:172px; margin:0 auto 18px; border-radius:50%; border:5px solid var(--fc, var(--gold)); background:#fff; padding:8px; overflow:hidden; }
+.leader-row { display:flex; align-items:center; gap:10px; font-size:13px; padding:8px 10px; margin-bottom:6px; border-left:4px solid var(--ink); background:rgba(32,27,61,0.05); }
+.leader-row .leader-name { flex:1; }
+.leader-row .leader-value { font-family:'Space Mono', monospace; font-weight:600; white-space:nowrap; }
+.empty-mini { font-size:12px; color:var(--ink-soft); text-align:center; }
+
+.history-header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px; }
+.filters { display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+.filters select { font-family:'Libre Franklin', sans-serif; padding:8px 10px; border:2px solid var(--rule); background:#fff; font-size:16px; }
+
+.tx-item { display:flex; align-items:center; gap:14px; padding:12px 14px; margin-bottom:8px; border-left:4px solid var(--ink); background:rgba(32,27,61,0.05); }
+.tx-main { flex:1; min-width:0; }
+.tx-cat { font-weight:600; display:block; }
+.tx-amt { font-family:'Space Mono', monospace; font-weight:700; white-space:nowrap; }
+.tx-amt.pos { color:var(--green); } .tx-amt.neg { color:var(--red); }
+.tx-meta { display:flex; gap:10px; align-items:center; margin-top:4px; font-size:12px; color:var(--ink-soft); flex-wrap:wrap; }
+.tx-meta .tag { border:1px solid var(--rule); padding:1px 7px; }
+.tx-meta .tx-note { font-style:italic; }
+.tx-meta-actions { display:flex; gap:8px; }
+.tx-meta-actions button { background:transparent; border:none; color:var(--ink-soft); font-size:14px; }
+.empty-state { color:var(--ink-soft); font-size:13px; padding:22px 0; text-align:center; border:2px dashed var(--rule); }
+
+.categories-toggle { background:transparent; border:2px solid var(--ink); padding:10px 14px; font-family:'Libre Franklin', sans-serif; font-size:13px; color:var(--ink); }
+.categories-body { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:18px; }
+@media (max-width:600px) { .categories-body { grid-template-columns:1fr; } }
+.category-col h3 { font-size:13px; margin:0 0 10px; color:var(--ink-soft); font-weight:600; }
+.chip-list { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+.chip { display:inline-flex; align-items:center; gap:6px; border:2px solid var(--ink); border-left:5px solid var(--cc, var(--ink)); padding:5px 8px 5px 10px; font-size:12px; background:#fff; }
+.chip button { background:transparent; border:none; color:var(--ink-soft); font-size:13px; line-height:1; }
+.chip-add { display:flex; gap:8px; }
+.chip-add input { flex:1; font-family:'Libre Franklin', sans-serif; padding:7px 9px; border:2px solid var(--rule); font-size:16px; }
+.chip-add button { font-family:'Libre Franklin', sans-serif; font-weight:600; border:2px solid var(--ink); background:var(--ink); color:var(--paper); padding:7px 12px; font-size:12px; }
+
+.footer { display:flex; justify-content:space-between; align-items:center; margin-top:12px; flex-wrap:wrap; gap:10px; }
+.install-hint { font-size:11px; color:var(--ink-soft); max-width:32ch; }
+</style>
+</head>
+<body>
+<div class="receipt" id="app">Caricamento…</div>
+<input type="file" id="restoreInput" accept="application/json" style="display:none">
+
+<script>
+/* Firebase is loaded dynamically further down, after the first render,
+   so opening the app never waits on the network for the SDK. */
+
+/* ====================================================================
+   CONFIGURAZIONE FIREBASE — incolla qui i valori dal tuo progetto
+   (Project settings > Le tue app > icona </> Web). Finche' restano
+   segnaposto, l'app funziona comunque, ma solo in locale su questo
+   dispositivo (nessuna sincronizzazione automatica nel cloud).
+==================================================================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyAzRav_4JlMBdRTorSjXoALTb3rvOsSAx0",
+  authDomain: "contabilita-1c934.firebaseapp.com",
+  projectId: "contabilita-1c934",
+  storageBucket: "contabilita-1c934.firebasestorage.app",
+  messagingSenderId: "530082566169",
+  appId: "1:530082566169:web:6d3e0809676d817a775a88"
+};
+/* ==================================================================== */
+
+const LS_KEY = "registro-conti-local-v1";
+const DEFAULT_CATEGORIES = {
+  entrata: ["Stipendio", "Lavoro extra", "Regali", "Rimborsi", "Investimenti", "Altro"],
+  uscita: ["Alimentari", "Casa e bollette", "Trasporti", "Salute", "Svago", "Shopping", "Abbonamenti", "Istruzione", "Altro"],
+};
+const FREQUENCIES = [{ id: "fissa", label: "Fissa" }, { id: "variabile", label: "Variabile" }, { id: "occasionale", label: "Occasionale" }];
+const FREQ_LABELS = { fissa: "Fissa", variabile: "Variabile", occasionale: "Occasionale" };
+const PERIODS = [{ id: "day", label: "Giorno" }, { id: "week", label: "Settimana" }, { id: "month", label: "Mese" }, { id: "year", label: "Anno" }];
+const PALETTE = ["#F2B705", "#1F9D6C", "#E8543E", "#3D6FA8", "#A64AC9", "#D98A1F", "#2E9E9E", "#C9467A", "#7A8C3E", "#4A4A9E"];
+const WALLET_COLORS = ["#1F9D6C", "#E8543E", "#3D6FA8", "#A64AC9", "#2E9E9E", "#C9860A"];
+const WALLET_TILTS = [-3, 2, -1.5, 3, -2.5, 1.5];
+
+function colorForName(name) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return PALETTE[Math.abs(hash) % PALETTE.length];
+}
+let idCounter = 0;
+function genId() { idCounter += 1; return `id-${Date.now().toString(36)}-${idCounter}-${Math.random().toString(36).slice(2, 7)}`; }
+function pad(n) { return n.toString().padStart(2, "0"); }
+function toISODate(d) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+function parseISODate(s) { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); }
+function startOfDay(d) { const nd = new Date(d); nd.setHours(0, 0, 0, 0); return nd; }
+function startOfWeek(d) { const nd = startOfDay(d); const day = nd.getDay(); const diff = (day === 0 ? -6 : 1) - day; nd.setDate(nd.getDate() + diff); return nd; }
+function startOfMonth(d) { return new Date(d.getFullYear(), d.getMonth(), 1); }
+function startOfYear(d) { return new Date(d.getFullYear(), 0, 1); }
+function addPeriod(d, period, amount) {
+  const nd = new Date(d);
+  if (period === "day") nd.setDate(nd.getDate() + amount);
+  else if (period === "week") nd.setDate(nd.getDate() + 7 * amount);
+  else if (period === "month") nd.setMonth(nd.getMonth() + amount);
+  else if (period === "year") nd.setFullYear(nd.getFullYear() + amount);
+  return nd;
+}
+function getPeriodStart(period, ref) { if (period === "day") return startOfDay(ref); if (period === "week") return startOfWeek(ref); if (period === "month") return startOfMonth(ref); return startOfYear(ref); }
+function getPeriodRange(period, offset) { const today = new Date(); const ref = addPeriod(today, period, offset); const start = getPeriodStart(period, ref); const end = addPeriod(start, period, 1); return { start, end }; }
+function formatPeriodLabel(period, start) {
+  if (period === "day") return new Intl.DateTimeFormat("it-IT", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(start);
+  if (period === "week") { const end = new Date(start); end.setDate(end.getDate() + 6); const fmt = new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short" }); return `${fmt.format(start)} – ${fmt.format(end)}`; }
+  if (period === "month") return new Intl.DateTimeFormat("it-IT", { month: "long", year: "numeric" }).format(start);
+  return new Intl.DateTimeFormat("it-IT", { year: "numeric" }).format(start);
+}
+function formatPeriodShortLabel(period, start) {
+  if (period === "month") return new Intl.DateTimeFormat("it-IT", { month: "short" }).format(start);
+  if (period === "year") return new Intl.DateTimeFormat("it-IT", { year: "numeric" }).format(start);
+  return new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short" }).format(start);
+}
+function formatCurrency(v) { return new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(v || 0); }
+function formatShortDate(iso) { return new Intl.DateTimeFormat("it-IT", { day: "2-digit", month: "short" }).format(parseISODate(iso)); }
+function buildBreakdown(list) {
+  const map = {};
+  list.forEach((t) => { map[t.category] = (map[t.category] || 0) + t.amount; });
+  return Object.entries(map).map(([name, value]) => ({ name, value, color: colorForName(name) })).sort((a, b) => b.value - a.value);
+}
+function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+/* ---------------- state ---------------- */
+let data = loadLocal() || { wallets: [], categories: { ...DEFAULT_CATEGORIES }, transactions: [] };
+let period = "month";
+let offset = 0;
+let txType = "uscita";
+let editingId = null;
+let activeWalletEdit = null;
+let walletFormOpen = false;
+let walletDeleteArmed = null;
+let resetArmed = false;
+let categoriesOpen = false;
+let filterWallet = "all", filterCategory = "all", filterFrequency = "all";
+let cloudReady = false, cloudUser = null, db = null;
+let incomeChart = null, expenseChart = null, trendChart = null;
+let importMessage = null;
+
+function loadLocal() { try { const raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; } }
+function saveLocal() { try { localStorage.setItem(LS_KEY, JSON.stringify(data)); } catch (e) {} }
+
+let fsDoc = null, fsSetDoc = null;
+
+async function persist(next) {
+  data = next;
+  saveLocal();
+  renderAll();
+  if (cloudReady && cloudUser && db && fsSetDoc) {
+    fsSetDoc(fsDoc(db, "registro", cloudUser.uid), data).catch(() => setSync("error"));
+  }
+}
+
+function setSync(state) {
+  const el = document.getElementById("syncDot");
+  const label = document.getElementById("syncLabel");
+  if (!el) return;
+  el.className = "sync-dot" + (state === "ok" ? " ok" : state === "pending" ? " pending" : state === "error" ? " error" : "");
+  if (label) label.textContent = state === "ok" ? "Sincronizzato" : state === "pending" ? "Offline — verrà sincronizzato alla riconnessione" : state === "error" ? "Errore di sincronizzazione" : cloudReady ? "In attesa..." : "Solo su questo dispositivo";
+}
+
+async function initFirebase() {
+  if (!firebaseConfig.apiKey || firebaseConfig.apiKey.includes("INSERISCI")) return;
+  try {
+    const [{ initializeApp }, authMod, fsMod] = await Promise.all([
+      import("https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js"),
+      import("https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js"),
+    ]);
+    const { getAuth, signInAnonymously, onAuthStateChanged } = authMod;
+    const { initializeFirestore, persistentLocalCache, persistentSingleTabManager, doc, setDoc, onSnapshot } = fsMod;
+    fsDoc = doc; fsSetDoc = setDoc;
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() }) });
+    onAuthStateChanged(auth, (user) => {
+      if (!user) return;
+      cloudUser = user;
+      cloudReady = true;
+      onSnapshot(doc(db, "registro", user.uid), { includeMetadataChanges: true }, (snap) => {
+        if (snap.exists()) {
+          data = snap.data();
+          saveLocal();
+        } else if (!snap.metadata.fromCache) {
+          setDoc(doc(db, "registro", user.uid), data);
+        }
+        setSync(snap.metadata.hasPendingWrites || snap.metadata.fromCache ? "pending" : "ok");
+        renderAll();
+      }, () => setSync("error"));
+    });
+    await signInAnonymously(auth);
+  } catch (e) {
+    console.error("Firebase init failed", e);
+
+  }
+}
+
+/* ---------------- derived data ---------------- */
+function walletBalance(w) {
+  const sum = data.transactions.reduce((acc, t) => t.wallet === w.name ? acc + (t.type === "entrata" ? t.amount : -t.amount) : acc, 0);
+  return (w.initialBalance || 0) + sum;
+}
+
+/* ---------------- render ---------------- */
+function renderAll() {
+  const app = document.getElementById("app");
+  const configured = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("INSERISCI");
+  const { start, end } = getPeriodRange(period, offset);
+  const periodLabel = formatPeriodLabel(period, start);
+  const inPeriod = data.transactions.filter((t) => { const d = parseISODate(t.date); return d >= start && d < end; });
+  const totalEntrate = inPeriod.filter((t) => t.type === "entrata").reduce((a, t) => a + t.amount, 0);
+  const totalUscite = inPeriod.filter((t) => t.type === "uscita").reduce((a, t) => a + t.amount, 0);
+  const saldo = totalEntrate - totalUscite;
+  const prevRange = getPeriodRange(period, offset - 1);
+  const prevTxs = data.transactions.filter((t) => { const d = parseISODate(t.date); return d >= prevRange.start && d < prevRange.end; });
+  const prevSaldo = prevTxs.filter((t) => t.type === "entrata").reduce((a, t) => a + t.amount, 0) - prevTxs.filter((t) => t.type === "uscita").reduce((a, t) => a + t.amount, 0);
+  const delta = saldo - prevSaldo;
+  const incomeBreakdown = buildBreakdown(inPeriod.filter((t) => t.type === "entrata"));
+  const expenseBreakdown = buildBreakdown(inPeriod.filter((t) => t.type === "uscita"));
+  const allCats = [...data.categories.entrata, ...data.categories.uscita].filter((v, i, a) => a.indexOf(v) === i);
+  const filteredList = inPeriod.filter((t) => (filterWallet === "all" || t.wallet === filterWallet) && (filterCategory === "all" || t.category === filterCategory) && (filterFrequency === "all" || t.frequency === filterFrequency))
+    .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+  const trendData = Array.from({ length: 6 }, (_, i) => {
+    const off = offset - (5 - i);
+    const r = getPeriodRange(period, off);
+    const txs = data.transactions.filter((t) => { const d = parseISODate(t.date); return d >= r.start && d < r.end; });
+    return { label: formatPeriodShortLabel(period, r.start), entrate: txs.filter((t) => t.type === "entrata").reduce((a, t) => a + t.amount, 0), uscite: txs.filter((t) => t.type === "uscita").reduce((a, t) => a + t.amount, 0) };
+  });
+
+  app.innerHTML = `
+    ${!configured ? `<div class="setup-banner">Salvataggio in locale su questo dispositivo. Incolla la configurazione Firebase nel file per attivare la sincronizzazione automatica nel cloud.</div>` : `<div class="sync-banner"><span class="sync-dot" id="syncDot"></span><span id="syncLabel">In attesa...</span></div>`}
+    ${importMessage ? `<p class="import-message ${importMessage.type}">${esc(importMessage.text)}</p>` : ""}
+
+    <div class="backup-bar">
+      <span>Backup manuale:</span>
+      <button type="button" id="btnBackup">Scarica backup</button>
+      <button type="button" id="btnRestore" class="btn-outline">Ripristina da file</button>
+    </div>
+
+    <div class="hero-top">
+      <h1 class="wordmark">Registro</h1>
+      <div class="title-accent"><span></span><span></span><span></span></div>
+      <p class="tagline">Entrate, uscite e portafogli, sempre sotto controllo.</p>
+    </div>
+
+    <p class="hero-balance-label">Saldo del periodo</p>
+    <span id="heroBalance" class="hero-balance-value ${saldo < 0 ? "neg" : "pos"}">${formatCurrency(saldo)}</span>
+    <p class="hero-delta ${delta < 0 ? "neg" : "pos"}">${delta >= 0 ? "▲" : "▼"} ${formatCurrency(Math.abs(delta))} rispetto al periodo precedente</p>
+
+    <div class="hero-figures">
+      <div><span class="hero-figure-label">Entrate</span><span class="hero-figure-value pos">${formatCurrency(totalEntrate)}</span></div>
+      <div><span class="hero-figure-label">Uscite</span><span class="hero-figure-value neg">${formatCurrency(totalUscite)}</span></div>
+    </div>
+
+    <div class="period-tabs">${PERIODS.map((p) => `<button type="button" data-period="${p.id}" class="${period === p.id ? "period-active" : ""}">${p.label}</button>`).join("")}</div>
+    <div class="period-nav">
+      <button type="button" class="nav-arrow" id="navPrev">‹</button>
+      <span class="period-label">${periodLabel}</span>
+      <button type="button" class="nav-arrow" id="navNext">›</button>
+      ${offset !== 0 ? `<button type="button" class="btn-today" id="navToday">torna a oggi</button>` : ""}
+    </div>
+
+    <div class="tear">
+      <div class="wallets-row">
+        ${data.wallets.map((w, i) => `
+          <div class="wallet-tab-wrap">
+            <button type="button" class="wallet-stub ${activeWalletEdit === w.id ? "wallet-stub-active" : ""}" data-wallet="${w.id}"
+              style="--wc:${WALLET_COLORS[i % WALLET_COLORS.length]};--tilt:${WALLET_TILTS[i % WALLET_TILTS.length]}deg">
+              <span class="wallet-stub-name">${esc(w.name)}</span>
+              <span class="wallet-stub-balance">${formatCurrency(walletBalance(w))}</span>
+            </button>
+          </div>`).join("")}
+        <div class="wallet-tab-wrap"><button type="button" class="wallet-add-stub" id="btnAddWallet">+ Portafoglio</button></div>
+      </div>
+      ${data.wallets.length === 0 && !walletFormOpen ? `<p class="wallets-empty-hint">Aggiungi il primo portafoglio per iniziare a registrare i movimenti.</p>` : ""}
+      <div id="walletPanelArea">${renderWalletPanel()}</div>
+    </div>
+
+    <div class="tear">
+      <div class="grid-two">
+        <section>
+          <h2 class="section-heading">Nuovo movimento</h2>
+          <form id="txForm">
+            <div class="segmented">
+              <button type="button" data-type="entrata" class="${txType === "entrata" ? "seg-active seg-income" : ""}">Entrata</button>
+              <button type="button" data-type="uscita" class="${txType === "uscita" ? "seg-active seg-expense" : ""}">Uscita</button>
+            </div>
+            <label class="field"><span>Importo</span><div class="amount-input"><span class="currency-prefix">€</span><input type="number" min="0" step="0.01" id="txAmount" placeholder="0,00" required></div></label>
+            <label class="field"><span>Categoria</span><select id="txCategory" required>${(data.categories[txType] || []).map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join("")}</select></label>
+            <label class="field"><span>Portafoglio</span><select id="txWallet" required ${data.wallets.length === 0 ? "disabled" : ""}>
+              ${data.wallets.length === 0 ? `<option value="">Nessun portafoglio</option>` : data.wallets.map((w) => `<option value="${esc(w.name)}">${esc(w.name)}</option>`).join("")}
+            </select></label>
+            <div id="txFreqField" class="field" style="${txType === "uscita" ? "" : "display:none"}"><span>Frequenza</span><select id="txFrequency">${FREQUENCIES.map((f) => `<option value="${f.id}">${f.label}</option>`).join("")}</select></div>
+            <label class="field"><span>Data</span><input type="date" id="txDate" value="${toISODate(new Date())}" required></label>
+            <label class="field"><span>Nota (facoltativa)</span><input type="text" id="txNote" placeholder="es. cena con amici"></label>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary" id="txSubmit" ${data.wallets.length === 0 ? "disabled" : ""}>${editingId ? "Salva modifiche" : "Registra movimento"}</button>
+              ${editingId ? `<button type="button" class="btn-ghost" id="txCancelEdit">Annulla modifica</button>` : ""}
+            </div>
+          </form>
+        </section>
+        <section>
+          ${renderBreakdown("Da dove arrivano le entrate", incomeBreakdown, "#1F9D6C", "income")}
+          ${renderBreakdown("Dove vanno le uscite", expenseBreakdown, "#E8543E", "expense")}
+        </section>
+      </div>
+    </div>
+
+    <div class="tear">
+      <h2 class="section-heading">Andamento — ${PERIODS.find((p) => p.id === period).label.toLowerCase()}</h2>
+      <canvas id="trendCanvas" height="220"></canvas>
+    </div>
+
+    <div class="tear">
+      <div class="history-header"><h2 class="section-heading" style="margin:0">Movimenti — ${periodLabel}</h2><button type="button" class="btn-ghost" id="btnExportCsv">Esporta CSV</button></div>
+      <div class="filters">
+        <select id="filterWalletSel"><option value="all">Tutti i portafogli</option>${data.wallets.map((w) => `<option value="${esc(w.name)}" ${filterWallet === w.name ? "selected" : ""}>${esc(w.name)}</option>`).join("")}</select>
+        <select id="filterCategorySel"><option value="all">Tutte le categorie</option>${allCats.map((c) => `<option value="${esc(c)}" ${filterCategory === c ? "selected" : ""}>${esc(c)}</option>`).join("")}</select>
+        <select id="filterFrequencySel"><option value="all">Tutte le frequenze</option>${FREQUENCIES.map((f) => `<option value="${f.id}" ${filterFrequency === f.id ? "selected" : ""}>${f.label}</option>`).join("")}</select>
+      </div>
+      ${filteredList.length === 0 ? `<p class="empty-state">Nessun movimento da mostrare per questo periodo e questi filtri.</p>` : filteredList.map((t) => `
+        <div class="tx-item" style="border-left-color:${colorForName(t.category)}">
+          <div class="tx-main">
+            <span class="tx-cat">${esc(t.category)}</span>
+            <div class="tx-meta">
+              <span>${formatShortDate(t.date)}</span><span>${esc(t.wallet)}</span>
+              ${t.frequency ? `<span class="tag">${FREQ_LABELS[t.frequency]}</span>` : ""}
+              ${t.note ? `<span class="tx-note">${esc(t.note)}</span>` : ""}
+            </div>
+          </div>
+          <span class="tx-amt ${t.type === "entrata" ? "pos" : "neg"}">${t.type === "entrata" ? "+" : "−"}${formatCurrency(t.amount)}</span>
+          <span class="tx-meta-actions"><button type="button" data-edit="${t.id}" aria-label="Modifica">✎</button><button type="button" data-del="${t.id}" aria-label="Elimina">✕</button></span>
+        </div>`).join("")}
+    </div>
+
+    <div class="tear">
+      <button type="button" class="categories-toggle" id="btnToggleCategories">${categoriesOpen ? "Nascondi categorie" : "Gestisci categorie"}</button>
+      ${categoriesOpen ? `
+      <div class="categories-body">
+        <div class="category-col"><h3>Entrate</h3>
+          <div class="chip-list">${data.categories.entrata.map((c) => `<span class="chip" style="--cc:${colorForName(c)}">${esc(c)}<button type="button" data-rmcat="entrata|${esc(c)}">×</button></span>`).join("")}</div>
+          <div class="chip-add"><input type="text" id="newCatEntrata" placeholder="Nuova categoria"><button type="button" id="addCatEntrata">Aggiungi</button></div>
+        </div>
+        <div class="category-col"><h3>Uscite</h3>
+          <div class="chip-list">${data.categories.uscita.map((c) => `<span class="chip" style="--cc:${colorForName(c)}">${esc(c)}<button type="button" data-rmcat="uscita|${esc(c)}">×</button></span>`).join("")}</div>
+          <div class="chip-add"><input type="text" id="newCatUscita" placeholder="Nuova categoria"><button type="button" id="addCatUscita">Aggiungi</button></div>
+        </div>
+      </div>` : ""}
+    </div>
+
+    <footer class="footer">
+      <span class="install-hint">Su iPhone: Condividi → Aggiungi alla schermata Home, per usarlo come un'app.</span>
+      <button type="button" class="btn-ghost btn-danger" id="btnReset">${resetArmed ? "Conferma cancellazione dati" : "Cancella tutti i dati"}</button>
+    </footer>
+  `;
+
+  bindEvents();
+  drawCharts(incomeBreakdown, expenseBreakdown, trendData);
+}
+
+function renderWalletPanel() {
+  if (activeWalletEdit) {
+    const w = data.wallets.find((x) => x.id === activeWalletEdit);
+    if (w) return `<div class="wallet-edit-panel">
+      <label>Nome<input type="text" id="editWalletName" value="${esc(w.name)}"></label>
+      <label>Saldo iniziale<input type="number" step="0.01" id="editWalletInitial" value="${w.initialBalance || 0}"></label>
+      <div class="wallet-edit-actions">
+        <button type="button" class="btn-small" id="saveWalletEdit">Salva</button>
+        <button type="button" class="btn-small btn-danger" id="deleteWalletBtn">${walletDeleteArmed === w.id ? "Conferma" : "Elimina"}</button>
+        <button type="button" class="btn-small btn-ghost" id="closeWalletEdit">Chiudi</button>
+      </div></div>`;
+  }
+  if (walletFormOpen) {
+    return `<div class="wallet-edit-panel">
+      <label>Nome<input type="text" id="newWalletName" placeholder="es. Contanti"></label>
+      <label>Saldo iniziale<input type="number" step="0.01" id="newWalletInitial" placeholder="0"></label>
+      <div class="wallet-edit-actions">
+        <button type="button" class="btn-small" id="addWalletBtn">Aggiungi</button>
+        <button type="button" class="btn-small btn-ghost" id="cancelAddWallet">Annulla</button>
+      </div></div>`;
+  }
+  return "";
+}
+
+function renderBreakdown(heading, list, frameColor, key) {
+  if (!list.length) return `<div class="breakdown-block"><h3 class="breakdown-heading">${heading}</h3><p class="empty-mini">Nessun movimento in questo periodo.</p></div>`;
+  return `<div class="breakdown-block"><h3 class="breakdown-heading">${heading}</h3>
+    <div class="coin-frame" style="--fc:${frameColor}"><canvas id="${key}Canvas"></canvas></div>
+    ${list.map((e) => `<div class="leader-row" style="border-left-color:${e.color}"><span class="leader-name">${esc(e.name)}</span><span class="leader-value">${formatCurrency(e.value)}</span></div>`).join("")}
+  </div>`;
+}
+
+function drawCharts(incomeBreakdown, expenseBreakdown, trendData) {
+  if (incomeChart) { incomeChart.destroy(); incomeChart = null; }
+  if (expenseChart) { expenseChart.destroy(); expenseChart = null; }
+  if (trendChart) { trendChart.destroy(); trendChart = null; }
+  const incomeCanvas = document.getElementById("incomeCanvas");
+  if (incomeCanvas && incomeBreakdown.length) {
+    incomeChart = new Chart(incomeCanvas, { type: "doughnut", data: { labels: incomeBreakdown.map((e) => e.name), datasets: [{ data: incomeBreakdown.map((e) => e.value), backgroundColor: incomeBreakdown.map((e) => e.color), borderWidth: 0 }] }, options: { plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => formatCurrency(c.parsed) } } }, cutout: "55%" } });
+  }
+  const expenseCanvas = document.getElementById("expenseCanvas");
+  if (expenseCanvas && expenseBreakdown.length) {
+    expenseChart = new Chart(expenseCanvas, { type: "doughnut", data: { labels: expenseBreakdown.map((e) => e.name), datasets: [{ data: expenseBreakdown.map((e) => e.value), backgroundColor: expenseBreakdown.map((e) => e.color), borderWidth: 0 }] }, options: { plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => formatCurrency(c.parsed) } } }, cutout: "55%" } });
+  }
+  const trendCanvas = document.getElementById("trendCanvas");
+  if (trendCanvas) {
+    trendChart = new Chart(trendCanvas, { type: "bar", data: { labels: trendData.map((d) => d.label), datasets: [
+      { label: "Entrate", data: trendData.map((d) => d.entrate), backgroundColor: "#F2B705" },
+      { label: "Uscite", data: trendData.map((d) => d.uscite), backgroundColor: "#E8543E" },
+    ] }, options: { plugins: { tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${formatCurrency(c.parsed.y)}` } } }, scales: { y: { ticks: { callback: (v) => new Intl.NumberFormat("it-IT").format(v) } } } } });
+  }
+}
+
+/* ---------------- events ---------------- */
+function bindEvents() {
+  document.querySelectorAll(".period-tabs button").forEach((b) => b.onclick = () => { period = b.dataset.period; offset = 0; renderAll(); });
+  const navPrev = document.getElementById("navPrev"); if (navPrev) navPrev.onclick = () => { offset -= 1; renderAll(); };
+  const navNext = document.getElementById("navNext"); if (navNext) navNext.onclick = () => { offset += 1; renderAll(); };
+  const navToday = document.getElementById("navToday"); if (navToday) navToday.onclick = () => { offset = 0; renderAll(); };
+
+  document.querySelectorAll(".wallet-stub").forEach((b) => b.onclick = () => {
+    const id = b.dataset.wallet;
+    walletFormOpen = false;
+    activeWalletEdit = activeWalletEdit === id ? null : id;
+    renderAll();
+  });
+  const btnAddWallet = document.getElementById("btnAddWallet"); if (btnAddWallet) btnAddWallet.onclick = () => { activeWalletEdit = null; walletFormOpen = !walletFormOpen; renderAll(); };
+  const addWalletBtn = document.getElementById("addWalletBtn");
+  if (addWalletBtn) addWalletBtn.onclick = () => {
+    const name = document.getElementById("newWalletName").value.trim();
+    if (!name) return;
+    const initialBalance = Number(document.getElementById("newWalletInitial").value) || 0;
+    walletFormOpen = false;
+    persist({ ...data, wallets: [...data.wallets, { id: genId(), name, initialBalance }] });
+  };
+  const cancelAddWallet = document.getElementById("cancelAddWallet"); if (cancelAddWallet) cancelAddWallet.onclick = () => { walletFormOpen = false; renderAll(); };
+  const saveWalletEdit = document.getElementById("saveWalletEdit");
+  if (saveWalletEdit) saveWalletEdit.onclick = () => {
+    const w = data.wallets.find((x) => x.id === activeWalletEdit);
+    const newName = document.getElementById("editWalletName").value.trim();
+    if (!w || !newName) return;
+    const newInitial = Number(document.getElementById("editWalletInitial").value) || 0;
+    const wallets = data.wallets.map((x) => x.id === w.id ? { ...x, name: newName, initialBalance: newInitial } : x);
+    const transactions = newName !== w.name ? data.transactions.map((t) => t.wallet === w.name ? { ...t, wallet: newName } : t) : data.transactions;
+    activeWalletEdit = null;
+    persist({ ...data, wallets, transactions });
+  };
+  const closeWalletEdit = document.getElementById("closeWalletEdit"); if (closeWalletEdit) closeWalletEdit.onclick = () => { activeWalletEdit = null; renderAll(); };
+  const deleteWalletBtn = document.getElementById("deleteWalletBtn");
+  if (deleteWalletBtn) deleteWalletBtn.onclick = () => {
+    if (walletDeleteArmed !== activeWalletEdit) { walletDeleteArmed = activeWalletEdit; renderAll(); setTimeout(() => { if (walletDeleteArmed === activeWalletEdit) { walletDeleteArmed = null; renderAll(); } }, 3000); return; }
+    const wallets = data.wallets.filter((x) => x.id !== activeWalletEdit);
+    activeWalletEdit = null; walletDeleteArmed = null;
+    persist({ ...data, wallets });
+  };
+
+  document.querySelectorAll(".segmented button").forEach((b) => b.onclick = () => { txType = b.dataset.type; renderAll(); });
+
+  const txForm = document.getElementById("txForm");
+  if (txForm) txForm.onsubmit = (e) => {
+    e.preventDefault();
+    const amount = Math.round(Number(String(document.getElementById("txAmount").value).replace(",", ".")) * 100) / 100;
+    const category = document.getElementById("txCategory").value;
+    const wallet = document.getElementById("txWallet").value;
+    const frequency = txType === "uscita" ? document.getElementById("txFrequency").value : null;
+    const dateVal = document.getElementById("txDate").value;
+    const note = document.getElementById("txNote").value;
+    if (!amount || amount <= 0 || !category || !wallet) return;
+    const payload = { type: txType, amount, category, wallet, frequency, date: dateVal, note };
+    let transactions;
+    if (editingId) { transactions = data.transactions.map((t) => t.id === editingId ? { ...t, ...payload } : t); editingId = null; }
+    else { transactions = [...data.transactions, { id: genId(), ...payload }]; }
+    persist({ ...data, transactions });
+    flashHero();
+  };
+  const txCancelEdit = document.getElementById("txCancelEdit"); if (txCancelEdit) txCancelEdit.onclick = () => { editingId = null; renderAll(); };
+
+  document.querySelectorAll("[data-edit]").forEach((b) => b.onclick = () => {
+    const t = data.transactions.find((x) => x.id === b.dataset.edit);
+    if (!t) return;
+    editingId = t.id; txType = t.type;
+    renderAll();
+    document.getElementById("txAmount").value = t.amount;
+    document.getElementById("txCategory").value = t.category;
+    document.getElementById("txWallet").value = t.wallet;
+    if (t.frequency) document.getElementById("txFrequency").value = t.frequency;
+    document.getElementById("txDate").value = t.date;
+    document.getElementById("txNote").value = t.note || "";
+  });
+  document.querySelectorAll("[data-del]").forEach((b) => b.onclick = () => persist({ ...data, transactions: data.transactions.filter((t) => t.id !== b.dataset.del) }));
+
+  const filterWalletSel = document.getElementById("filterWalletSel"); if (filterWalletSel) filterWalletSel.onchange = (e) => { filterWallet = e.target.value; renderAll(); };
+  const filterCategorySel = document.getElementById("filterCategorySel"); if (filterCategorySel) filterCategorySel.onchange = (e) => { filterCategory = e.target.value; renderAll(); };
+  const filterFrequencySel = document.getElementById("filterFrequencySel"); if (filterFrequencySel) filterFrequencySel.onchange = (e) => { filterFrequency = e.target.value; renderAll(); };
+
+  const btnToggleCategories = document.getElementById("btnToggleCategories"); if (btnToggleCategories) btnToggleCategories.onclick = () => { categoriesOpen = !categoriesOpen; renderAll(); };
+  document.querySelectorAll("[data-rmcat]").forEach((b) => b.onclick = () => {
+    const [type, name] = b.dataset.rmcat.split("|");
+    persist({ ...data, categories: { ...data.categories, [type]: data.categories[type].filter((c) => c !== name) } });
+  });
+  const addCatEntrata = document.getElementById("addCatEntrata");
+  if (addCatEntrata) addCatEntrata.onclick = () => {
+    const val = document.getElementById("newCatEntrata").value.trim();
+    if (!val || data.categories.entrata.includes(val)) return;
+    persist({ ...data, categories: { ...data.categories, entrata: [...data.categories.entrata, val] } });
+  };
+  const addCatUscita = document.getElementById("addCatUscita");
+  if (addCatUscita) addCatUscita.onclick = () => {
+    const val = document.getElementById("newCatUscita").value.trim();
+    if (!val || data.categories.uscita.includes(val)) return;
+    persist({ ...data, categories: { ...data.categories, uscita: [...data.categories.uscita, val] } });
+  };
+
+  const btnExportCsv = document.getElementById("btnExportCsv"); if (btnExportCsv) btnExportCsv.onclick = exportCSV;
+  const btnBackup = document.getElementById("btnBackup"); if (btnBackup) btnBackup.onclick = downloadBackup;
+  const btnRestore = document.getElementById("btnRestore"); if (btnRestore) btnRestore.onclick = () => document.getElementById("restoreInput").click();
+
+  const btnReset = document.getElementById("btnReset");
+  if (btnReset) btnReset.onclick = () => {
+    if (!resetArmed) { resetArmed = true; renderAll(); setTimeout(() => { resetArmed = false; renderAll(); }, 3000); return; }
+    resetArmed = false;
+    persist({ wallets: [], categories: { ...DEFAULT_CATEGORIES }, transactions: [] });
+  };
+}
+
+function flashHero() {
+  const el = document.getElementById("heroBalance");
+  if (!el) return;
+  el.classList.add("flash");
+  setTimeout(() => el.classList.remove("flash"), 650);
+}
+
+function exportCSV() {
+  const header = ["Data", "Tipo", "Categoria", "Portafoglio", "Frequenza", "Importo", "Nota"];
+  const rows = data.transactions.slice().sort((a, b) => a.date.localeCompare(b.date)).map((t) => [t.date, t.type, t.category, t.wallet, t.frequency || "", t.amount.toFixed(2).replace(".", ","), (t.note || "").replace(/;/g, ",")]);
+  const csv = [header, ...rows].map((r) => r.join(";")).join("\n");
+  downloadBlob(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }), "registro-conti.csv");
+}
+function downloadBackup() { downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), "registro-backup.json"); }
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+document.getElementById("restoreInput").addEventListener("change", (e) => {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(String(reader.result));
+      if (!parsed || !Array.isArray(parsed.wallets) || !Array.isArray(parsed.transactions) || !parsed.categories) throw new Error("formato non valido");
+      persist(parsed);
+      importMessage = { type: "ok", text: "Backup ripristinato." };
+      renderAll();
+    } catch (err) {
+      importMessage = { type: "error", text: "Questo file non sembra un backup valido del Registro." };
+      renderAll();
+    }
+    setTimeout(() => { importMessage = null; renderAll(); }, 4000);
+  };
+  reader.readAsText(file);
+});
+
+/* ---------------- boot ---------------- */
+renderAll();
+initFirebase();
+</script>
+</body>
+</html>
