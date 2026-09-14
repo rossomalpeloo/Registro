@@ -157,7 +157,7 @@ body[data-theme="minimal"] .tab-bar { position: fixed; left: 0; right: 0; bottom
 body[data-theme="minimal"] .tab-bar button { padding: 12px 0; border-right: 1px solid #E5E5E5; border-radius: 0; gap:2px;}
 body[data-theme="minimal"] .tab-bar button:last-child { border-right: none; }
 body[data-theme="minimal"] .tab-bar button.tab-active { background: #000; color: #fff; box-shadow: none; }
-body[data-theme="minimal"] .tab-bar button.tab-active svg { filter: invert(1); transform: none; }
+body[data-theme="minimal"] .tab-bar button.tab-active svg { filter: none; transform: none; }
 
 body[data-theme="minimal"] .segmented { background: transparent; border: 1px solid #000; border-radius: 0; padding: 0; box-shadow: none; }
 body[data-theme="minimal"] .segmented button { border-radius: 0; border-right: 1px solid #000; color: #666; padding: 12px; }
@@ -210,6 +210,25 @@ button, input, select { transition: transform 0.25s var(--ease-spring), opacity 
 .hero-balance-label { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.6); margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1.2px; }
 .hero-balance-value { font-weight: 700; font-size: 52px; letter-spacing: -2px; line-height: 1; display: block; margin-bottom: 16px; text-shadow: 0 4px 16px rgba(0,0,0,0.25); transition: 0.3s; }
 .hero-balance-value.flash { animation: popGlow 0.5s var(--ease-spring); }
+
+.btn-privacy { background: transparent; border: none; font-size: 22px; line-height: 1; padding: 6px; cursor: pointer; opacity: 0.75; }
+.btn-privacy:active { transform: scale(0.9); }
+
+.amount-blur { transition: filter 0.25s var(--ease-smooth), opacity 0.25s ease; display: inline-block; }
+body.privacy-on .amount-blur { filter: blur(7px); opacity: 0.9; user-select: none; -webkit-user-select: none; }
+
+/* --- BLOCCO FACE ID / PASSWORD --- */
+.lock-screen { min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 14px; padding: 40px 20px; animation: slideUpFade 0.5s var(--ease-spring); }
+.lock-icon { font-size: 56px; margin-bottom: 4px; }
+.lock-title { font-size: 22px; font-weight: 800; color: var(--text-main); margin: 0; letter-spacing: -0.3px; }
+.lock-sub { font-size: 15px; color: var(--text-sec); margin: 0 0 10px; }
+.lock-error { color: var(--ios-red); font-size: 14px; font-weight: 600; margin: 0 0 4px; }
+.lock-pass-wrap { width: 100%; max-width: 280px; display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+.lock-pass-wrap input { padding: 16px 18px; border-radius: var(--radius-main); border: 1px solid var(--card-border); background: var(--control-bg); color: var(--text-main); font-size: 17px; text-align: center; outline: none; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+.lock-pass-wrap input:focus { border-color: var(--ios-accent); }
+.lock-status-hint { font-size: 13px; color: var(--text-sec); padding: 14px 22px 0; margin: 0; }
+.form-error { color: var(--ios-red); font-weight: 600; font-size: 14px; margin: 4px 0 0; padding: 0 22px; }
+.btn-ghost[disabled] { opacity: 0.4; }
 
 .hero-figures { display: flex; gap: 14px; margin-top: 24px;}
 .hero-figures > div { flex: 1; background: rgba(255,255,255,0.08); padding: 18px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 1px 0 rgba(255,255,255,0.1); }
@@ -371,6 +390,97 @@ let currentChroma = localStorage.getItem('registro-chroma') || '#007AFF';
 let currentGlow = localStorage.getItem('registro-glow') || 'rgba(0, 122, 255, 0.4)';
 let privacyMode = localStorage.getItem('registro-privacy') === 'true';
 
+// --- BLOCCO FACE ID / TOUCH ID (WebAuthn) + password di riserva ---
+let lockEnabled = localStorage.getItem('registro-lock-enabled') === 'true';
+let lockCredId = localStorage.getItem('registro-lock-cred-id') || null;
+let lockPassHash = localStorage.getItem('registro-lock-pass-hash') || null;
+let lockPassSalt = localStorage.getItem('registro-lock-pass-salt') || null;
+let appUnlocked = !lockEnabled;
+let webauthnAvailable = false;
+let lockSetupOpen = false, lockDisableOpen = false;
+let lockSetupError = null, lockDisableError = null;
+let lockUsePasswordMode = false, lockScreenError = null, faceIdAutoTried = false;
+
+function arrayBufferToBase64(buf) { return btoa(String.fromCharCode(...new Uint8Array(buf))); }
+function base64ToArrayBuffer(b64) { const bin = atob(b64); const bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i); return bytes.buffer; }
+function genSaltHex() { const arr = crypto.getRandomValues(new Uint8Array(16)); return Array.from(arr).map((b) => b.toString(16).padStart(2, "0")).join(""); }
+async function hashPassword(password, saltHex) { const enc = new TextEncoder(); const buf = await crypto.subtle.digest("SHA-256", enc.encode(saltHex + ":" + password)); return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join(""); }
+
+async function checkWebAuthnAvailability() {
+  try {
+    webauthnAvailable = !!(window.PublicKeyCredential && (await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()));
+  } catch (e) { webauthnAvailable = false; }
+  if (typeof renderAll === 'function') renderAll();
+}
+
+async function registerFaceId() {
+  try {
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+    const userId = crypto.getRandomValues(new Uint8Array(16));
+    const cred = await navigator.credentials.create({ publicKey: {
+      challenge, rp: { name: "Registro" }, user: { id: userId, name: "utente-locale", displayName: "Utente" },
+      pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+      authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+      timeout: 60000, attestation: "none"
+    }});
+    if (!cred) return false;
+    lockCredId = arrayBufferToBase64(cred.rawId);
+    localStorage.setItem('registro-lock-cred-id', lockCredId);
+    return true;
+  } catch (e) { console.error("WebAuthn create failed", e); return false; }
+}
+
+async function unlockWithFaceId() {
+  if (!webauthnAvailable || !lockCredId) return;
+  lockScreenError = null;
+  try {
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+    const assertion = await navigator.credentials.get({ publicKey: {
+      challenge, allowCredentials: [{ id: base64ToArrayBuffer(lockCredId), type: "public-key" }],
+      userVerification: "required", timeout: 60000
+    }});
+    if (assertion) { appUnlocked = true; haptic('success'); renderAll(); }
+  } catch (e) { lockScreenError = "Face ID non riuscito. Riprova o usa la password."; renderAll(); }
+}
+
+async function unlockWithPassword(pw) {
+  if (!pw) { lockScreenError = "Inserisci la password."; renderAll(); return; }
+  const hash = await hashPassword(pw, lockPassSalt);
+  if (hash === lockPassHash) { appUnlocked = true; lockScreenError = null; haptic('success'); renderAll(); }
+  else { lockScreenError = "Password errata."; haptic('heavy'); renderAll(); }
+}
+
+function renderLockScreenHTML() {
+  return `
+    <div class="lock-screen">
+      <div class="lock-icon">🔒</div>
+      <h1 class="lock-title">Registro Bloccato</h1>
+      <p class="lock-sub">Sblocca per accedere ai tuoi dati.</p>
+      ${lockScreenError ? `<p class="lock-error">${esc(lockScreenError)}</p>` : ""}
+      ${webauthnAvailable && lockCredId && !lockUsePasswordMode ? `
+        <button type="button" class="btn-primary" id="btnUnlockFaceId" style="max-width:280px;">Sblocca con Face ID</button>
+        <button type="button" class="btn-ghost" id="btnShowPasswordUnlock" style="max-width:280px;">Usa la password</button>
+      ` : `
+        <div class="lock-pass-wrap">
+          <input type="password" id="lockUnlockPass" placeholder="Password" autocomplete="current-password">
+          <button type="button" class="btn-primary" id="btnUnlockPassword">Sblocca</button>
+          ${webauthnAvailable && lockCredId ? `<button type="button" class="btn-ghost" id="btnBackToFaceId">Riprova con Face ID</button>` : ""}
+        </div>
+      `}
+    </div>`;
+}
+
+function bindLockScreenEvents() {
+  const btnFaceId = document.getElementById("btnUnlockFaceId"); if (btnFaceId) btnFaceId.onclick = () => unlockWithFaceId();
+  const btnShowPw = document.getElementById("btnShowPasswordUnlock"); if (btnShowPw) btnShowPw.onclick = () => { lockUsePasswordMode = true; lockScreenError = null; renderAll(); };
+  const btnBackFaceId = document.getElementById("btnBackToFaceId"); if (btnBackFaceId) btnBackFaceId.onclick = () => { lockUsePasswordMode = false; lockScreenError = null; renderAll(); };
+  const btnUnlockPw = document.getElementById("btnUnlockPassword");
+  const pwInput = document.getElementById("lockUnlockPass");
+  if (btnUnlockPw) btnUnlockPw.onclick = () => unlockWithPassword(pwInput ? pwInput.value : "");
+  if (pwInput) { pwInput.focus(); pwInput.onkeydown = (e) => { if (e.key === "Enter") unlockWithPassword(pwInput.value); }; }
+  if (webauthnAvailable && lockCredId && !lockUsePasswordMode && !faceIdAutoTried) { faceIdAutoTried = true; setTimeout(() => unlockWithFaceId(), 300); }
+}
+
 function applyStyles() {
   document.body.setAttribute('data-theme', currentTheme);
   document.documentElement.style.setProperty('--ios-accent', currentChroma);
@@ -379,6 +489,7 @@ function applyStyles() {
   else document.body.classList.remove('privacy-on');
 }
 applyStyles();
+checkWebAuthnAvailability();
 
 window.setTheme = function(themeName) { haptic('light'); currentTheme = themeName; localStorage.setItem('registro-theme', themeName); applyStyles(); if (typeof renderAll === 'function') renderAll(); };
 window.setChroma = function(color, glow) { haptic('success'); currentChroma = color; currentGlow = glow; localStorage.setItem('registro-chroma', color); localStorage.setItem('registro-glow', glow); applyStyles(); if (typeof renderAll === 'function') renderAll(); };
@@ -485,6 +596,7 @@ const ICONS = {
 function renderAll() {
   try {
     const app = document.getElementById("app");
+    if (lockEnabled && !appUnlocked) { app.innerHTML = renderLockScreenHTML(); bindLockScreenEvents(); return; }
     const configured = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("INSERISCI");
     const { start, end } = getPeriodRange(period, offset);
     const periodLabel = formatPeriodLabel(period, start);
@@ -689,6 +801,43 @@ function renderAll() {
                 ${data.categories.uscita.map((c) => `<span class="chip">${catBadge(c)}${esc(c)}<button type="button" data-rmcat="uscita|${esc(c)}">✕</button></span>`).join("")}
               </div>
               <div class="ios-list" style="box-shadow:none; margin-bottom:0;"><div class="chip-add-wrap"><input type="text" id="newCatUscita" placeholder="Nuova uscita..."><button type="button" id="addCatUscita">Aggiungi</button></div></div>
+            </div>
+          ` : ""}
+        </div>
+
+        <h2 class="section-heading" style="margin-top:32px;">Blocco App</h2>
+        <div class="ios-list">
+          <div class="ios-list-item" style="padding:0;">
+            <button type="button" class="btn-ghost" id="btnToggleLock" style="text-align:left; padding:18px 22px; border:none; box-shadow:none;" ${!lockEnabled && !webauthnAvailable ? "disabled" : ""}>
+              ${lockEnabled ? "🔓 Disattiva Blocco Face ID" : (webauthnAvailable ? "🔒 Attiva Blocco Face ID" : "Face ID non disponibile su questo dispositivo/browser")}
+            </button>
+          </div>
+          ${lockEnabled && !lockDisableOpen ? `<p class="lock-status-hint">Blocco attivo. L'app si aprirà con Face ID o con la password di riserva.</p>` : ""}
+          ${lockSetupOpen ? `
+            <div style="padding:16px 22px; background:rgba(0,0,0,0.02);">
+              <p class="lock-status-hint">Imposta una password di riserva da usare se Face ID non funziona.</p>
+              <div class="ios-list" style="margin:12px 0; box-shadow:none;">
+                <div class="ios-list-item"><label>Password</label><input type="password" id="lockSetupPass1" placeholder="Min. 4 caratteri"></div>
+                <div class="ios-list-item"><label>Conferma</label><input type="password" id="lockSetupPass2" placeholder="Ripeti password"></div>
+              </div>
+              ${lockSetupError ? `<p class="form-error">${esc(lockSetupError)}</p>` : ""}
+              <div class="wallet-edit-actions">
+                <button type="button" class="btn-small" id="lockSetupConfirm">Attiva Face ID</button>
+                <button type="button" class="btn-small btn-ghost" id="lockSetupCancel">Annulla</button>
+              </div>
+            </div>
+          ` : ""}
+          ${lockDisableOpen ? `
+            <div style="padding:16px 22px; background:rgba(0,0,0,0.02);">
+              <p class="lock-status-hint">Inserisci la password per disattivare il blocco.</p>
+              <div class="ios-list" style="margin:12px 0; box-shadow:none;">
+                <div class="ios-list-item"><label>Password</label><input type="password" id="lockDisablePass" placeholder="Password attuale"></div>
+              </div>
+              ${lockDisableError ? `<p class="form-error">${esc(lockDisableError)}</p>` : ""}
+              <div class="wallet-edit-actions">
+                <button type="button" class="btn-small" style="background:rgba(255,59,48,0.15); color:var(--ios-red);" id="lockDisableConfirm">Conferma Disattivazione</button>
+                <button type="button" class="btn-small btn-ghost" id="lockDisableCancel">Annulla</button>
+              </div>
             </div>
           ` : ""}
         </div>
@@ -1016,6 +1165,46 @@ function bindEvents() {
     if (!resetArmed) { resetArmed = true; renderAll(); setTimeout(() => { resetArmed = false; renderAll(); }, 3000); return; }
     resetArmed = false;
     persist({ wallets: [], categories: { ...DEFAULT_CATEGORIES }, transactions: [] });
+  };
+
+  const btnToggleLock = document.getElementById("btnToggleLock");
+  if (btnToggleLock) btnToggleLock.onclick = () => {
+    haptic('light');
+    if (lockEnabled) { lockDisableOpen = true; lockSetupOpen = false; lockDisableError = null; }
+    else if (webauthnAvailable) { lockSetupOpen = true; lockDisableOpen = false; lockSetupError = null; }
+    renderAll();
+  };
+  const lockSetupCancel = document.getElementById("lockSetupCancel"); if (lockSetupCancel) lockSetupCancel.onclick = () => { lockSetupOpen = false; lockSetupError = null; renderAll(); };
+  const lockSetupConfirm = document.getElementById("lockSetupConfirm");
+  if (lockSetupConfirm) lockSetupConfirm.onclick = async () => {
+    const p1 = document.getElementById("lockSetupPass1").value;
+    const p2 = document.getElementById("lockSetupPass2").value;
+    if (!p1 || p1.length < 4) { lockSetupError = "La password deve avere almeno 4 caratteri."; renderAll(); return; }
+    if (p1 !== p2) { lockSetupError = "Le password non coincidono."; renderAll(); return; }
+    lockSetupError = null;
+    const ok = await registerFaceId();
+    if (!ok) { lockSetupError = "Impossibile registrare Face ID. Riprova."; renderAll(); return; }
+    const salt = genSaltHex();
+    const hash = await hashPassword(p1, salt);
+    lockPassSalt = salt; lockPassHash = hash; lockEnabled = true;
+    localStorage.setItem('registro-lock-pass-salt', salt);
+    localStorage.setItem('registro-lock-pass-hash', hash);
+    localStorage.setItem('registro-lock-enabled', 'true');
+    lockSetupOpen = false;
+    haptic('success');
+    renderAll();
+  };
+  const lockDisableCancel = document.getElementById("lockDisableCancel"); if (lockDisableCancel) lockDisableCancel.onclick = () => { lockDisableOpen = false; lockDisableError = null; renderAll(); };
+  const lockDisableConfirm = document.getElementById("lockDisableConfirm");
+  if (lockDisableConfirm) lockDisableConfirm.onclick = async () => {
+    const pw = document.getElementById("lockDisablePass").value;
+    const hash = await hashPassword(pw, lockPassSalt);
+    if (hash !== lockPassHash) { lockDisableError = "Password errata."; haptic('heavy'); renderAll(); return; }
+    lockEnabled = false; lockCredId = null; lockPassHash = null; lockPassSalt = null; lockDisableOpen = false;
+    localStorage.removeItem('registro-lock-enabled'); localStorage.removeItem('registro-lock-cred-id');
+    localStorage.removeItem('registro-lock-pass-hash'); localStorage.removeItem('registro-lock-pass-salt');
+    haptic('success');
+    renderAll();
   };
 }
 
