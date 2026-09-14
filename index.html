@@ -40,14 +40,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* OVERLAY GRAIN (Texture Titanio Finissima) */
-.noise-overlay {
-  display: none; position: fixed; inset: 0; z-index: 9999; pointer-events: none; opacity: 0.02;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.5' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
 /* =========================================
-   THEMES SYSTEM 
+   THEMES SYSTEM (Variabili)
    ========================================= */
 
 /* TEMA 1: VETRO */
@@ -61,14 +55,6 @@ body[data-theme="glass"] {
   --tab-pos-b: max(20px, env(safe-area-inset-bottom)); --tab-pos-x: 20px; --tab-radius: 40px; --tab-label-display: flex;
 }
 
-/* TEMA 2: MINIMALE */
-body[data-theme="minimal"] {
-  --bg-color: #F9FAFB; --card-bg: #FFFFFF; --card-border: #E5E7EB; --card-shadow: 0 1px 2px rgba(0,0,0,0.03); --card-blur: none;
-  --control-bg: #F3F4F6; --text-main: #111827; --text-sec: #6B7280; --separator: #F3F4F6; --radius-main: 12px; --radius-list: 12px;
-  --hero-bg: #FFFFFF; --hero-text: #111827; --hero-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  --tab-bg: #FFFFFF; --tab-shadow: 0 -1px 0 #E5E7EB; --tab-pos-b: 0; --tab-pos-x: 0; --tab-radius: 0; --tab-label-display: flex;
-}
-
 /* TEMA 3: PRO UI/UX (ULTRA DARK) */
 body[data-theme="expert"] {
   --bg-color: #050505; --card-bg: rgba(20, 20, 22, 0.7); --card-border: rgba(255,255,255,0.06);
@@ -79,42 +65,120 @@ body[data-theme="expert"] {
   --tab-pos-b: max(24px, env(safe-area-inset-bottom)); --tab-pos-x: 50%; --tab-radius: 50px; --tab-label-display: none; 
 }
 
+/* TEMA 2: MINIMALE BRUTALISTA (Bianco/Nero/Grigio, Linee Nette) */
+body[data-theme="minimal"] {
+  --bg-color: #FFFFFF; --card-bg: #FFFFFF; --card-border: #000000; --card-shadow: none; --card-blur: none;
+  --control-bg: #F4F4F4; --text-main: #000000; --text-sec: #666666; --separator: #E5E5E5; 
+  --radius-main: 0px; --radius-list: 0px; --hero-bg: #FFFFFF; --hero-text: #000000; --hero-shadow: none;
+  --tab-bg: #FFFFFF; --tab-shadow: none; --tab-pos-b: 0; --tab-pos-x: 0; --tab-radius: 0; --tab-label-display: flex;
+}
+
 /* =========================================
-   OVERRIDE SPECIFICI TEMA EXPERT (EFFETTI 3D)
+   OVERRIDE STRUTTURALI PER TEMA
    ========================================= */
+
+/* --- GLI EFFETTI DEL TEMA EXPERT E GLASS --- */
+.noise-overlay { display: none; position: fixed; inset: 0; z-index: 9999; pointer-events: none; opacity: 0.02; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.5' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.ambient-bg { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; overflow: hidden; background: #E8E8ED; }
 body[data-theme="expert"] .noise-overlay { display: block; }
-body[data-theme="expert"] .ambient-bg { display: none; }
+body[data-theme="glass"] .ambient-bg { display: block; }
+body[data-theme="glass"] .hero-balance-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 40%); pointer-events: none; display: block; }
+
 body[data-theme="expert"] .hero-balance-card { padding: 1px; border: none; overflow: hidden; box-shadow: 0 0 30px var(--ios-accent-glow); }
 body[data-theme="expert"] .hero-card-content { background: rgba(15,15,18,0.95); border-radius: calc(var(--radius-main) - 1px); backdrop-filter: blur(20px); z-index: 2; position: relative; }
 body[data-theme="expert"] .hero-balance-card .glow-wrap { display: block; position: absolute; width: 250%; height: 250%; top: -75%; left: -75%; background: conic-gradient(from 0deg, transparent 70%, var(--ios-accent) 100%); animation: spinGlow 4s linear infinite; z-index: 1; }
 @keyframes spinGlow { 100% { transform: rotate(360deg); } }
 body[data-theme="expert"] .hero-balance-value { background: linear-gradient(110deg, #FFFFFF 0%, #71717A 40%, #FFFFFF 60%, #71717A 100%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: holoShine 4s linear infinite; text-shadow: none; }
 @keyframes holoShine { to { background-position: 200% center; } }
-body[data-theme="expert"] .hero-balance-value.flash { animation: slotRoll 0.6s var(--ease-smooth); }
-@keyframes slotRoll { 0% { transform: translateY(-25px) scale(0.9); opacity: 0; filter: blur(5px); } 100% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); } }
 body[data-theme="expert"] .hero-figures > div { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.04); box-shadow: none; }
-
 body[data-theme="expert"] .wallet-stub { background: linear-gradient(135deg, #18181B, #09090B) !important; border: 1px solid rgba(255,255,255,0.08); overflow: hidden; }
 body[data-theme="expert"] .wallet-stub::before { content: ''; position: absolute; inset: 0; opacity: 0.15; background-image: radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px); background-size: 5px 5px; pointer-events: none; }
 body[data-theme="expert"] .wallet-stub::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; top: auto; height: 3px; background: var(--wc); box-shadow: 0 -4px 20px var(--wc); opacity: 0.85; }
 body[data-theme="expert"] .wallet-stub-active { outline-color: var(--ios-accent); box-shadow: 0 20px 40px var(--ios-accent-glow); }
-
 body[data-theme="expert"] .ios-list { background: transparent; border: none; box-shadow: none; backdrop-filter: none; display: flex; flex-direction: column; gap: 12px; padding:0; }
 body[data-theme="expert"] .ios-list-item, body[data-theme="expert"] .tx-swipe-wrapper { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; margin: 0; }
 body[data-theme="expert"] .ios-list-item { padding: 20px; }
 body[data-theme="expert"] .chip { background: #1E1E20; border: 1px solid #27272A; }
 body[data-theme="expert"] canvas { filter: drop-shadow(0 0 16px var(--ios-accent-glow)); }
-
-/* Tab Bar Flottante Compatta in Pro UI */
 body[data-theme="expert"] .tab-bar { left: 50%; right: auto; width: max-content; transform: translateX(-50%); padding: 10px 16px; gap: 14px; }
 body[data-theme="expert"] .tab-bar button { padding: 12px; border-radius: 50%; max-width: none; flex: 0 0 auto; background: transparent; }
 body[data-theme="expert"] .tab-bar button.tab-active { background: rgba(255,255,255,0.1); color: var(--ios-accent); box-shadow: 0 4px 12px var(--ios-accent-glow), inset 0 1px 0 rgba(255,255,255,0.1); }
 body[data-theme="expert"] .tab-bar button.tab-active svg { transform: scale(1.1); filter: none; }
 
-/* Privacy Blur */
-body.privacy-on .amount-blur { filter: blur(10px) opacity(0.5); pointer-events: none; user-select: none; transition: filter 0.4s var(--ease-smooth), opacity 0.4s; }
-.btn-privacy { background: none; border: none; font-size: 22px; color: var(--text-sec); cursor: pointer; padding: 4px; transition: transform 0.2s; }
-.btn-privacy:active { transform: scale(0.8); }
+/* --- IL NUOVO TEMA MINIMALE (Brutalista) --- */
+body[data-theme="minimal"] .ambient-bg { display: none; }
+body[data-theme="minimal"] .hero-balance-card { padding: 0 0 24px 0; border: none; box-shadow: none; margin-bottom: 24px; border-bottom: 2px solid #000; border-radius: 0; }
+body[data-theme="minimal"] .hero-card-content { padding: 0; background: transparent; }
+body[data-theme="minimal"] .glow-wrap { display: none; }
+body[data-theme="minimal"] .hero-balance-value { font-size: 64px; letter-spacing: -3px; color: #000 !important; text-shadow: none; margin-bottom: 4px; font-weight: 800;}
+body[data-theme="minimal"] .hero-balance-label { display: none; } /* Nasconde testo superfluo */
+body[data-theme="minimal"] .hero-delta { background: transparent; border: none; padding: 0; color: #666 !important; font-weight: 500; font-size: 15px; margin:0;}
+body[data-theme="minimal"] .hero-delta.pos, body[data-theme="minimal"] .hero-delta.neg { color: #000 !important; }
+body[data-theme="minimal"] .hero-figures { gap: 0; margin-top: 16px; border-top: 1px solid #E5E5E5; padding-top: 16px;}
+body[data-theme="minimal"] .hero-figures > div { background: transparent; border: none; box-shadow: none; padding: 0; border-left: 1px solid #000; border-radius: 0; padding-left: 16px; margin-left:16px;}
+body[data-theme="minimal"] .hero-figures > div:first-child { border-left: none; padding-left: 0; margin-left:0;}
+body[data-theme="minimal"] .hero-figure-label { color: #666; font-size: 11px; letter-spacing:1px; text-transform:uppercase; margin-bottom:2px;}
+body[data-theme="minimal"] .hero-figure-value { color: #000 !important; font-size: 22px; letter-spacing: -1px; font-weight:700;}
+
+body[data-theme="minimal"] .period-tabs { border: 1px solid #000; border-radius: 0; padding: 0; background: #fff; box-shadow:none;}
+body[data-theme="minimal"] .period-tabs button { border-radius: 0; color: #666; border-right: 1px solid #000; padding: 10px 0; }
+body[data-theme="minimal"] .period-tabs button:last-child { border-right: none; }
+body[data-theme="minimal"] .period-tabs button.period-active { background: #000; color: #fff; box-shadow: none; }
+body[data-theme="minimal"] .period-nav { border: 1px solid #000; border-radius: 0; background: #fff; box-shadow: none; padding: 4px 8px; }
+body[data-theme="minimal"] .period-nav button.nav-arrow { background: transparent; color: #000; }
+body[data-theme="minimal"] .btn-today { border-radius: 0; border: 1px solid #000; color: #000; background: transparent; box-shadow:none;}
+
+body[data-theme="minimal"] .wallet-stub { background: #fff !important; border: 1px solid #000; border-radius: 0; box-shadow: none; min-width: 140px; height: 110px; padding: 16px; }
+body[data-theme="minimal"] .wallet-stub::after { display: none; }
+body[data-theme="minimal"] .wallet-stub-name { color: #666; text-shadow: none; font-size: 13px; }
+body[data-theme="minimal"] .wallet-stub-balance { color: #000; text-shadow: none; font-size: 24px; }
+body[data-theme="minimal"] .wallet-stub-active { outline: none; background: #000 !important; transform: none; box-shadow:none;}
+body[data-theme="minimal"] .wallet-stub-active .wallet-stub-name { color: #aaa; }
+body[data-theme="minimal"] .wallet-stub-active .wallet-stub-balance { color: #fff; }
+body[data-theme="minimal"] .wallet-add-stub { border: 1px dashed #000; border-radius: 0; background: transparent; color: #000; height: 110px; min-width: 110px; }
+
+body[data-theme="minimal"] .ios-list { background: #fff; border: 1px solid #000; border-radius: 0; box-shadow: none; backdrop-filter: none; }
+body[data-theme="minimal"] .ios-list-item { padding: 16px; border-bottom: 1px solid #E5E5E5; }
+body[data-theme="minimal"] .ios-list-item label { color: #000; font-weight:700; }
+body[data-theme="minimal"] .ios-list-item input, body[data-theme="minimal"] .ios-list-item select, body[data-theme="minimal"] .amount-wrap input { color: #000; font-family: ui-monospace, "SF Mono", monospace; }
+
+body[data-theme="minimal"] .cat-icon, body[data-theme="minimal"] .select-icon-badge { background: #fff !important; border: 1px solid #000; color: #000; box-shadow: none; border-radius: 0; filter: grayscale(100%); }
+body[data-theme="minimal"] .select-color-dot { background: #000 !important; border-radius: 0; width: 12px; height: 12px; box-shadow: none; }
+
+body[data-theme="minimal"] .tx-swipe-wrapper { border: none; border-bottom: 1px solid #E5E5E5; border-radius: 0; box-shadow: none; margin: 0; }
+body[data-theme="minimal"] .tx-main-content { padding: 16px 0; }
+body[data-theme="minimal"] .tx-cat { color: #000; font-size: 16px; }
+body[data-theme="minimal"] .tx-amt { color: #000 !important; font-size: 18px; }
+body[data-theme="minimal"] .tx-meta { color: #666; font-size: 12px; }
+body[data-theme="minimal"] .tx-meta .tag { border: 1px solid #ccc; background: transparent; border-radius: 0; color:#000;}
+body[data-theme="minimal"] .tx-actions button { border-radius:0; border:1px solid #000; background:transparent;}
+
+body[data-theme="minimal"] .tab-bar { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; backdrop-filter: none; border-radius: 0; box-shadow: none; border: none; border-top: 1px solid #000; padding: 0; padding-bottom: env(safe-area-inset-bottom); width: 100%; transform: none; display: flex; }
+body[data-theme="minimal"] .tab-bar button { padding: 12px 0; border-right: 1px solid #E5E5E5; border-radius: 0; gap:2px;}
+body[data-theme="minimal"] .tab-bar button:last-child { border-right: none; }
+body[data-theme="minimal"] .tab-bar button.tab-active { background: #000; color: #fff; box-shadow: none; }
+body[data-theme="minimal"] .tab-bar button.tab-active svg { filter: invert(1); transform: none; }
+
+body[data-theme="minimal"] .segmented { background: transparent; border: 1px solid #000; border-radius: 0; padding: 0; box-shadow: none; }
+body[data-theme="minimal"] .segmented button { border-radius: 0; border-right: 1px solid #000; color: #666; padding: 12px; }
+body[data-theme="minimal"] .segmented button:last-child { border-right: none; }
+body[data-theme="minimal"] .segmented button.seg-active { background: #000; color: #fff; box-shadow: none; }
+
+body[data-theme="minimal"] .btn-primary { background: #000; color: #fff; border-radius: 0; box-shadow: none; border: 1px solid #000; }
+body[data-theme="minimal"] .btn-ghost { background: transparent; border: 1px solid #000; color: #000; border-radius: 0; box-shadow: none; }
+body[data-theme="minimal"] .btn-small { border-radius: 0; background: #000; box-shadow: none; border: 1px solid #000; color: #fff;}
+body[data-theme="minimal"] .btn-small.btn-ghost { background: transparent; color:#000; }
+body[data-theme="minimal"] .btn-swipe-edit, body[data-theme="minimal"] .btn-swipe-del { border-left:1px solid #000;}
+
+body[data-theme="minimal"] .filters select, body[data-theme="minimal"] .btn-filter { border-radius: 0; border: 1px solid #000; background: #fff; box-shadow: none; color: #000; }
+body[data-theme="minimal"] .chip { border-radius: 0; border: 1px solid #000; background: transparent; color: #000; box-shadow: none; }
+body[data-theme="minimal"] .chip-add-wrap input { border-radius: 0; border: 1px solid #000; background: transparent; color: #000; }
+body[data-theme="minimal"] .chip-add-wrap button { border-radius: 0; background: #000; color: #fff; border: 1px solid #000; box-shadow: none; }
+
+body[data-theme="minimal"] .breakdown-block { border-radius: 0; border: 1px solid #000; box-shadow: none; background: transparent; }
+body[data-theme="minimal"] canvas { filter: grayscale(100%) contrast(1.2); }
+body[data-theme="minimal"] .empty-state, body[data-theme="minimal"] .empty-mini { font-family: ui-monospace, "SF Mono", monospace; font-style: normal; text-transform: uppercase; font-size: 13px; color: #000; letter-spacing: 1px;}
+body[data-theme="minimal"] .swipe-hint { display: none; } /* Nascondi hint testuale */
 
 /* =========================================
    UI COMPONENTS & LAYOUT STANDARD
@@ -122,8 +186,6 @@ body.privacy-on .amount-blur { filter: blur(10px) opacity(0.5); pointer-events: 
 button, input, select { transition: transform 0.25s var(--ease-spring), opacity 0.25s, background 0.25s, box-shadow 0.25s; }
 .receipt { position: relative; max-width: 600px; margin: 0 auto; padding: 16px 0 0; }
 
-.ambient-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; overflow: hidden; background: #E8E8ED; }
-body[data-theme="glass"] .ambient-bg { display: block; }
 .ambient-blob { position: absolute; border-radius: 50%; filter: blur(65px); animation: floatBlob 18s infinite ease-in-out alternate; }
 .blob-1 { top: -20%; left: -10%; width: 70vw; height: 70vw; background: rgba(10, 132, 255, 0.45); } 
 .blob-2 { top: 30%; right: -20%; width: 80vw; height: 80vw; background: rgba(191, 90, 242, 0.35); animation-delay: -5s; } 
@@ -134,7 +196,7 @@ body[data-theme="glass"] .ambient-bg { display: block; }
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap; 
   font-size: 14px; font-weight: 500; color: var(--text-sec); margin-bottom: 24px; 
   background: var(--card-bg); backdrop-filter: var(--card-blur); -webkit-backdrop-filter: var(--card-blur);
-  padding: 14px 18px; border-radius: 18px; box-shadow: var(--card-shadow); border: 1px solid var(--card-border);
+  padding: 14px 18px; border-radius: var(--radius-main); box-shadow: var(--card-shadow); border: 1px solid var(--card-border);
   animation: slideDownFade 0.6s var(--ease-smooth);
 }
 .sync-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-sec); flex: 0 0 auto; }
@@ -145,7 +207,6 @@ body[data-theme="glass"] .ambient-bg { display: block; }
 
 .hero-balance-card { background: var(--hero-bg); backdrop-filter: var(--card-blur); -webkit-backdrop-filter: var(--card-blur); color: var(--hero-text); border-radius: var(--radius-main); margin-bottom: 30px; box-shadow: var(--hero-shadow); position: relative; }
 .hero-card-content { padding: 28px 24px; position: relative; z-index: 2; border-radius: inherit; }
-body[data-theme="glass"] .hero-balance-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 40%); pointer-events: none; display: block; }
 .hero-balance-label { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.6); margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1.2px; }
 .hero-balance-value { font-weight: 700; font-size: 52px; letter-spacing: -2px; line-height: 1; display: block; margin-bottom: 16px; text-shadow: 0 4px 16px rgba(0,0,0,0.25); transition: 0.3s; }
 .hero-balance-value.flash { animation: popGlow 0.5s var(--ease-spring); }
@@ -159,7 +220,7 @@ body[data-theme="glass"] .hero-balance-card::before { content: ''; position: abs
 .period-tabs { display: flex; background: var(--control-bg); backdrop-filter: var(--card-blur); border-radius: 14px; padding: 4px; margin-bottom: 16px; width: 100%; border: 1px solid var(--card-border); box-shadow: var(--card-shadow);}
 .period-tabs button { flex: 1; padding: 10px 0; font-size: 14px; font-weight: 600; background: transparent; border: none; color: var(--text-sec); border-radius: 10px; transition: 0.3s var(--ease-spring); }
 .period-tabs button.period-active { background: var(--card-bg); box-shadow: 0 4px 12px rgba(0,0,0,0.08); color: var(--text-main); }
-.period-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; background: var(--card-bg); backdrop-filter: var(--card-blur); -webkit-backdrop-filter: var(--card-blur); padding: 10px 14px; border-radius: 20px; box-shadow: var(--card-shadow); border: 1px solid var(--card-border);}
+.period-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; background: var(--card-bg); backdrop-filter: var(--card-blur); -webkit-backdrop-filter: var(--card-blur); padding: 10px 14px; border-radius: var(--radius-main); box-shadow: var(--card-shadow); border: 1px solid var(--card-border);}
 .period-nav button.nav-arrow { font-size: 24px; color: var(--text-main); background: var(--control-bg); border: none; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 .period-label { font-size: 16px; font-weight: 700; color: var(--text-main); text-transform: capitalize; }
 .nav-today-wrap { text-align:center; margin-top:-20px; margin-bottom: 24px; }
@@ -170,7 +231,6 @@ body[data-theme="glass"] .hero-balance-card::before { content: ''; position: abs
 .wallets-row { display: flex; gap: 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 10px 4px 30px; margin: -10px -4px 0; scroll-snap-type: x mandatory; }
 .wallet-tab-wrap { position: relative; flex: 0 0 auto; scroll-snap-align: start; }
 .wallet-stub { background: var(--wc); border: none; border-radius: var(--radius-main); padding: 24px; min-width: 175px; height: 130px; cursor: pointer; text-align: left; color: #fff; box-shadow: 0 12px 28px rgba(0,0,0,0.15); display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; transition: 0.3s var(--ease-spring); }
-body[data-theme="glass"] .wallet-stub::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 60%); pointer-events: none; }
 .wallet-stub-name { display: block; font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 0.5px; text-shadow: 0 1px 4px rgba(0,0,0,0.2); position:relative; z-index:2;}
 .wallet-stub-balance { font-weight: 800; font-size: 26px; color: #fff; letter-spacing:-0.5px; text-shadow: 0 2px 8px rgba(0,0,0,0.2); position:relative; z-index:2; transition: 0.3s;}
 .wallet-add-stub { border: 2px dashed var(--text-sec); border-radius: var(--radius-main); color: var(--text-sec); font-weight: 600; font-size: 28px; display: flex; align-items: center; justify-content: center; min-width: 120px; height: 130px; background: var(--control-bg); backdrop-filter:var(--card-blur); opacity:0.6; }
@@ -190,8 +250,6 @@ body[data-theme="glass"] .wallet-stub::after { content: ''; position: absolute; 
 .select-icon-badge svg { width: 18px; height: 18px; }
 .select-color-dot { width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 6px rgba(0,0,0,0.15); }
 
-.form-error { background: rgba(255, 59, 48, 0.15); color: var(--ios-red); border-radius: 16px; padding: 16px; font-size: 15px; font-weight: 600; margin-bottom: 24px; text-align: center; border: 1px solid rgba(255,59,48,0.3);}
-
 .segmented { display: flex; background: var(--control-bg); backdrop-filter:var(--card-blur); padding: 4px; border-radius: 16px; margin-bottom: 24px; border: 1px solid var(--card-border); box-shadow: var(--card-shadow);}
 .segmented button { flex: 1; padding: 12px; background: transparent; border: none; font-size: 15px; font-weight: 600; color: var(--text-sec); border-radius: 12px; transition: 0.2s; }
 .segmented button.seg-active { background: var(--card-bg); box-shadow: 0 4px 12px rgba(0,0,0,0.08); color:var(--text-main);}
@@ -206,7 +264,7 @@ body[data-theme="glass"] .wallet-stub::after { content: ''; position: absolute; 
 .btn-small { font-size: 15px; font-weight: 600; padding: 14px 18px; border: none; border-radius: 16px; background: var(--ios-accent); color: #fff; flex: 1; text-align: center; }
 
 /* SWIPE-TO-ACTION */
-.tx-swipe-wrapper { background: var(--card-bg); border-radius: 20px; margin-bottom: var(--list-gap, 0); overflow: hidden; border: var(--item-border); border-bottom: 0.5px solid var(--separator); animation: itemFadeIn 0.5s var(--ease-spring) forwards; opacity: 0; box-shadow: var(--card-shadow, none); }
+.tx-swipe-wrapper { background: var(--card-bg); border-radius: var(--radius-main); margin-bottom: var(--list-gap, 0); overflow: hidden; border: var(--item-border); border-bottom: 0.5px solid var(--separator); animation: itemFadeIn 0.5s var(--ease-spring) forwards; opacity: 0; box-shadow: var(--card-shadow, none); }
 .tx-scroll-container { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none; }
 .tx-scroll-container::-webkit-scrollbar { display: none; }
 .tx-main-content { flex: 0 0 100%; scroll-snap-align: start; display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; gap: 14px; }
@@ -219,21 +277,46 @@ body[data-theme="glass"] .wallet-stub::after { content: ''; position: absolute; 
 .tx-amt { font-weight: 800; font-size: 19px; white-space: nowrap; text-align: right; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; transition: 0.3s;}
 .tx-amt.pos { color: var(--ios-green); } .tx-amt.neg { color: var(--text-main); }
 .tx-meta { font-size: 14px; color: var(--text-sec); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-left: 48px; font-weight: 500; }
+.swipe-hint { font-size:12px; color:var(--text-sec); text-align:center; padding:12px 0 4px; font-weight: 600; }
 
-.filters { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
-.filters select { padding: 12px 18px; border: none; border-radius: 16px; background: var(--card-bg); backdrop-filter:var(--card-blur); font-size: 14px; font-weight: 600; color: var(--text-main); box-shadow: var(--card-shadow); border: 1px solid var(--card-border); font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;}
-.btn-filter { padding: 10px 14px; font-size: 14px; width: auto; border-radius: 16px; background: var(--card-bg); backdrop-filter: var(--card-blur); box-shadow: var(--card-shadow); border: 1px solid var(--card-border); color: var(--text-main); font-weight:600;}
+/* FILTRI ELEGANTI A SCORRIMENTO */
+.filters { 
+  display: flex; gap: 10px; margin-bottom: 24px; overflow-x: auto; padding-bottom: 8px;
+  scrollbar-width: none; -ms-overflow-style: none;
+}
+.filters::-webkit-scrollbar { display: none; }
+.filters select, .btn-filter { 
+  flex: 0 0 auto; padding: 10px 18px; border: 1px solid var(--card-border); border-radius: 20px; 
+  background: var(--card-bg); backdrop-filter: var(--card-blur); font-size: 14px; font-weight: 600; 
+  color: var(--text-main); box-shadow: var(--card-shadow); outline: none; 
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  -webkit-appearance: none; appearance: none; transition: 0.2s;
+}
+.filters select {
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+}
+.btn-filter { display: flex; align-items: center; gap: 6px; }
+.btn-filter:active { transform: scale(0.95); }
 
 .grid-two { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: start; }
 @media (min-width: 600px) { .grid-two { grid-template-columns: 1fr 1fr; } }
-.breakdown-block { background: var(--card-bg); backdrop-filter:var(--card-blur); padding: 28px 20px; border-radius: 28px; margin-bottom: 24px; box-shadow: var(--card-shadow); border: 1px solid var(--card-border); }
+.breakdown-block { background: var(--card-bg); backdrop-filter:var(--card-blur); padding: 28px 20px; border-radius: var(--radius-main); margin-bottom: 24px; box-shadow: var(--card-shadow); border: 1px solid var(--card-border); }
 .breakdown-heading { font-size: 20px; font-weight: 800; margin: 0 0 28px; color: var(--text-main); text-align: center; letter-spacing: -0.5px;}
+
+/* Empty State Elegante (Serif) */
+.empty-state, .empty-mini { 
+  color: var(--text-sec); font-size: 18px; font-weight: 400; text-align: center; 
+  padding: 50px 20px; font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif; 
+  font-style: italic; letter-spacing: 0.5px; opacity: 0.8;
+}
 
 .chip-list { display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
 .chip { display: inline-flex; align-items: center; gap: 8px; border-radius: 14px; padding: 8px 16px 8px 8px; font-size: 15px; font-weight: 600; background: var(--control-bg); color: var(--text-main); border: 1px solid var(--card-border); box-shadow:var(--card-shadow);}
 .chip button { background: rgba(0,0,0,0.08); border: none; border-radius: 50%; width: 26px; height: 26px; color: var(--text-sec); display: flex; align-items: center; justify-content: center; padding: 0; margin-left: 4px; }
 .chip-add-wrap { padding: 18px 22px; display: flex; gap: 12px; }
-.chip-add-wrap input { flex: 1; padding: 14px 18px; border: none; border-radius: 14px; background: rgba(255,255,255,0.5); font-size: 16px; font-weight: 500; border:1px solid var(--glass-border); color:var(--text-main);}
+.chip-add-wrap input { flex: 1; padding: 14px 18px; border: none; border-radius: 14px; background: rgba(255,255,255,0.5); font-size: 16px; font-weight: 500; border:1px solid var(--card-border); color:var(--text-main);}
 .chip-add-wrap button { font-weight: 700; border: none; border-radius: 14px; background: var(--ios-accent); color: #fff; padding: 14px 20px; font-size: 16px; box-shadow: 0 4px 12px var(--ios-accent-glow);}
 
 .chroma-row { display: flex; gap: 12px; padding: 16px 22px; justify-content: space-between; }
@@ -244,14 +327,7 @@ body[data-theme="glass"] .wallet-stub::after { content: ''; position: absolute; 
 .app-section { display: none; }
 .app-section.active { display: block; animation: slideUpFade 0.5s var(--ease-spring) forwards; }
 
-/* FIX TAB BAR: Rende la barra fluttuante flex orizzontale in tutti i temi */
-.tab-bar { 
-  display: flex; flex-direction: row; justify-content: space-around; align-items: center;
-  position: fixed; left: var(--tab-pos-x); right: var(--tab-pos-x); bottom: var(--tab-pos-b); 
-  background: var(--tab-bg); backdrop-filter: blur(40px) saturate(200%); -webkit-backdrop-filter: blur(40px) saturate(200%); 
-  padding: 14px 8px; border-radius: var(--tab-radius); box-shadow: var(--tab-shadow); 
-  z-index: 50; transition: 0.4s var(--ease-spring); 
-}
+.tab-bar { display: flex; position: fixed; left: var(--tab-pos-x); right: var(--tab-pos-x); bottom: var(--tab-pos-b); background: var(--tab-bg); backdrop-filter: blur(40px) saturate(200%); -webkit-backdrop-filter: blur(40px) saturate(200%); justify-content: space-around; align-items: center; padding: 14px 8px; border-radius: var(--tab-radius); box-shadow: var(--tab-shadow); z-index: 50; transition: 0.4s var(--ease-spring); }
 .tab-bar button { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--text-sec); font-size: 11px; font-weight: 700; padding: 4px 12px; flex: 1; }
 .tab-bar button svg { width: 26px; height: 26px; stroke-width: 2.2; transition: 0.3s var(--ease-spring); }
 .tab-bar button.tab-active { color: var(--ios-accent); }
@@ -338,7 +414,7 @@ function categoryEmoji(name) { return CATEGORY_EMOJI[name] || "🏷️"; }
 const WALLET_EMOJI = ["💳", "💰", "🏦", "📱", "💼", "💸"];
 
 function categoryIcon(name) { return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${CAT_ICON_SVGS[CATEGORY_ICON_MAP[name] || "tag"]}</svg>`; }
-function catBadge(name) { return `<span class="select-icon-badge" style="background:${colorForName(name)}; width:30px; height:30px;">${categoryIcon(name)}</span>`; }
+function catBadge(name) { return `<span class="select-icon-badge" style="background:${colorForName(name)}">${categoryIcon(name)}</span>`; }
 function colorForName(name) { let hash = 0; for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash); return PALETTE[Math.abs(hash) % PALETTE.length]; }
 
 function genId() { return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`; }
@@ -458,7 +534,7 @@ function renderAll() {
           <div class="hero-card-content">
             <p class="hero-balance-label">Bilancio Totale</p>
             <span id="heroBalance" class="hero-balance-value amount-blur ${saldo < 0 ? "neg" : "pos"}">${formatCurrency(saldo)}</span>
-            <div><span class="hero-delta ${delta < 0 ? "neg" : "pos"}">${delta >= 0 ? "▲" : "▼"} <span class="amount-blur">${formatCurrency(Math.abs(delta))}</span> dal periodo prima</span></div>
+            <div><span class="hero-delta ${delta < 0 ? "neg" : "pos"}">${delta >= 0 ? "▲" : "▼"} <span class="amount-blur">${formatCurrency(Math.abs(delta))}</span></span></div>
             
             <div class="hero-figures">
               <div><span class="hero-figure-label">Entrate</span><span class="hero-figure-value pos amount-blur">${formatCurrency(totalEntrate)}</span></div>
@@ -467,7 +543,7 @@ function renderAll() {
           </div>
         </div>
 
-        <h2 class="section-heading">I Miei Portafogli</h2>
+        <h2 class="section-heading">Portafogli</h2>
         <div class="wallets-row">
           ${data.wallets.map((w, i) => `
             <div class="wallet-tab-wrap">
@@ -559,17 +635,20 @@ function renderAll() {
       </div>
 
       <div class="app-section${currentSection === "storico" ? " active" : ""}" data-section="storico">
-        <h2 class="section-heading">Tutti i Movimenti</h2>
+        <h2 class="section-heading">Movimenti</h2>
         
         <div class="filters">
           <select id="filterWalletSel"><option value="all">Tutti i conti</option>${data.wallets.map((w, i) => `<option value="${esc(w.name)}" ${filterWallet === w.name ? "selected" : ""}>${WALLET_EMOJI[i % WALLET_EMOJI.length]} ${esc(w.name)}</option>`).join("")}</select>
           <select id="filterCategorySel"><option value="all">Tutte le categorie</option>${allCats.map((c) => `<option value="${esc(c)}" ${filterCategory === c ? "selected" : ""}>${categoryEmoji(c)} ${esc(c)}</option>`).join("")}</select>
-          <button type="button" class="btn-filter" id="btnExportCsv">Esporta CSV</button>
+          <button type="button" class="btn-filter" id="btnExportCsv">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Esporta CSV
+          </button>
         </div>
 
-        ${filteredList.length === 0 ? `<p class="empty-state">Nessun movimento trovato.</p>` : `
+        ${filteredList.length === 0 ? `<p class="empty-state">Nessun movimento registrato in questo periodo.</p>` : `
           <div class="ios-list">
-            <p style="font-size:12px; color:var(--text-sec); text-align:center; padding-top:10px;">Scorri a sinistra per Modificare o Eliminare 👉</p>
+            <p class="swipe-hint">Scorri a sinistra per Modificare o Eliminare 👉</p>
             ${filteredList.map((t, i) => renderTxRow(t, i)).join("")}
           </div>
         `}
@@ -634,7 +713,6 @@ function renderAll() {
     bindEvents();
     drawCharts(incomeBreakdown, expenseBreakdown, trendData);
     
-    // Inizializza i colori dei puntini e l'icona al caricamento della sezione nuovo
     if(currentSection === 'nuovo') {
       const catSel = document.getElementById("txCategory"); if(catSel) catSel.dispatchEvent(new Event('change'));
       const wSel = document.getElementById("txWallet"); if(wSel) wSel.dispatchEvent(new Event('change'));
@@ -663,7 +741,7 @@ function renderTxRow(t, index = 0) {
   if (t.type === "trasferimento") {
     content = `
       <div class="tx-main">
-        <span class="tx-cat" style="color:var(--ios-orange)"><span class="select-icon-badge" style="background:var(--ios-orange)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12h16M14 6l6 6-6 6M10 18l-6-6 6-6"/></svg></span>Trasferimento</span>
+        <span class="tx-cat" style="color:var(--ios-orange)"><span class="cat-icon" style="background:var(--ios-orange)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12h16M14 6l6 6-6 6M10 18l-6-6 6-6"/></svg></span>Trasferimento</span>
         <div class="tx-meta"><span>${formatShortDate(t.date)}</span><span>${esc(t.fromWallet)} → ${esc(t.toWallet)}</span>${t.note ? `<span>&bull; ${esc(t.note)}</span>` : ""}</div>
       </div>
       <div class="tx-actions">
@@ -877,13 +955,11 @@ function bindEvents() {
     haptic('success');
     persist({ ...data, transactions });
     
-    // Reset Form
     document.getElementById("txForm").reset();
     currentSection = "home";
     renderAll();
     flashHero();
   };
-  
   const txCancelEdit = document.getElementById("txCancelEdit"); if (txCancelEdit) txCancelEdit.onclick = () => { editingId = null; renderAll(); };
 
   document.querySelectorAll("[data-edit]").forEach((b) => b.onclick = () => {
