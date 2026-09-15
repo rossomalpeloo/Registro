@@ -291,6 +291,8 @@ body.privacy-on .amount-blur { filter: blur(7px); opacity: 0.9; user-select: non
 .tx-actions-swipe button { flex: 1; border: none; font-size: 18px; color: #fff; display: flex; align-items: center; justify-content: center; border-radius: 0; box-shadow: none; transition: background 0.2s; }
 .btn-swipe-edit { background: var(--ios-orange); } .btn-swipe-edit:active { background: #E08300; }
 .btn-swipe-del { background: var(--ios-red); } .btn-swipe-del:active { background: #D63026; }
+.btn-swipe-del.armed { background: #B71C1C; animation: pulseArmed 0.9s ease-in-out infinite; }
+@keyframes pulseArmed { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
 
 .tx-cat { font-weight: 700; font-size: 17px; display: flex; align-items: center; gap: 14px; margin-bottom: 6px; color: var(--text-main); }
 .tx-amt { font-weight: 800; font-size: 19px; white-space: nowrap; text-align: right; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; transition: 0.3s;}
@@ -304,8 +306,8 @@ body.privacy-on .amount-blur { filter: blur(7px); opacity: 0.9; user-select: non
   scrollbar-width: none; -ms-overflow-style: none;
 }
 .filters::-webkit-scrollbar { display: none; }
-.filters select, .btn-filter { 
-  flex: 0 0 auto; padding: 10px 18px; border: 1px solid var(--card-border); border-radius: 20px; 
+.filters select, .btn-filter, .filter-search {
+  flex: 0 0 auto; padding: 10px 18px; border: 1px solid var(--card-border); border-radius: 20px;
   background: var(--card-bg); backdrop-filter: var(--card-blur); font-size: 14px; font-weight: 600; 
   color: var(--text-main); box-shadow: var(--card-shadow); outline: none; 
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
@@ -318,6 +320,8 @@ body.privacy-on .amount-blur { filter: blur(7px); opacity: 0.9; user-select: non
 }
 .btn-filter { display: flex; align-items: center; gap: 6px; }
 .btn-filter:active { transform: scale(0.95); }
+.filter-search { flex: 1 1 160px; min-width: 140px; -webkit-appearance: none; appearance: none; }
+.filter-search::-webkit-search-cancel-button { -webkit-appearance: none; }
 
 .grid-two { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: start; }
 @media (min-width: 600px) { .grid-two { grid-template-columns: 1fr 1fr; } }
@@ -404,7 +408,28 @@ let lockUsePasswordMode = false, lockScreenError = null, faceIdAutoTried = false
 function arrayBufferToBase64(buf) { return btoa(String.fromCharCode(...new Uint8Array(buf))); }
 function base64ToArrayBuffer(b64) { const bin = atob(b64); const bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i); return bytes.buffer; }
 function genSaltHex() { const arr = crypto.getRandomValues(new Uint8Array(16)); return Array.from(arr).map((b) => b.toString(16).padStart(2, "0")).join(""); }
-async function hashPassword(password, saltHex) { const enc = new TextEncoder(); const buf = await crypto.subtle.digest("SHA-256", enc.encode(saltHex + ":" + password)); return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join(""); }
+function hexToBytes(hex) { return new Uint8Array(hex.match(/.{1,2}/g).map((b) => parseInt(b, 16))); }
+const PBKDF2_ITERATIONS = 210000;
+async function hashPassword(password, saltHex) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt: hexToBytes(saltHex), iterations: PBKDF2_ITERATIONS, hash: "SHA-256" }, keyMaterial, 256);
+  return Array.from(new Uint8Array(bits)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+async function hashPasswordLegacySHA256(password, saltHex) { const enc = new TextEncoder(); const buf = await crypto.subtle.digest("SHA-256", enc.encode(saltHex + ":" + password)); return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join(""); }
+async function verifyLockPassword(pw) {
+  if (!pw || !lockPassHash || !lockPassSalt) return false;
+  if (lockHashAlgo === "pbkdf2") return (await hashPassword(pw, lockPassSalt)) === lockPassHash;
+  const legacyOk = (await hashPasswordLegacySHA256(pw, lockPassSalt)) === lockPassHash;
+  if (legacyOk) {
+    // migrazione trasparente: il primo sblocco riuscito con l'hash legacy ricalcola e salva un hash PBKDF2
+    const upgraded = await hashPassword(pw, lockPassSalt);
+    lockPassHash = upgraded; lockHashAlgo = "pbkdf2";
+    localStorage.setItem('registro-lock-pass-hash', upgraded);
+    localStorage.setItem('registro-lock-hash-algo', 'pbkdf2');
+  }
+  return legacyOk;
+}
 
 async function checkWebAuthnAvailability() {
   try {
@@ -445,8 +470,8 @@ async function unlockWithFaceId() {
 
 async function unlockWithPassword(pw) {
   if (!pw) { lockScreenError = "Inserisci la password."; renderAll(); return; }
-  const hash = await hashPassword(pw, lockPassSalt);
-  if (hash === lockPassHash) { appUnlocked = true; lockScreenError = null; haptic('success'); renderAll(); }
+  const ok = await verifyLockPassword(pw);
+  if (ok) { appUnlocked = true; lockScreenError = null; haptic('success'); renderAll(); }
   else { lockScreenError = "Password errata."; haptic('heavy'); renderAll(); }
 }
 
@@ -554,7 +579,49 @@ let data = { wallets: (savedData && savedData.wallets) ? savedData.wallets : [],
 if (!data.categories.entrata) data.categories.entrata = [...DEFAULT_CATEGORIES.entrata];
 if (!data.categories.uscita) data.categories.uscita = [...DEFAULT_CATEGORIES.uscita];
 
-let currentSection = "home"; let period = "month"; let offset = 0; let txType = "uscita"; let editingId = null; let activeWalletEdit = null; let walletFormOpen = false; let walletDeleteArmed = null; let resetArmed = false; let categoriesOpen = false; let filterWallet = "all", filterCategory = "all"; let cloudReady = false, cloudUser = null, db = null; let incomeChart = null, expenseChart = null, trendChart = null; let importMessage = null; let fsDoc = null, fsSetDoc = null;
+let currentSection = "home"; let period = "month"; let offset = 0; let txType = "uscita"; let editingId = null; let activeWalletEdit = null; let walletFormOpen = false; let walletDeleteArmed = null; let txDeleteArmed = null; let resetArmed = false; let categoriesOpen = false; let filterWallet = "all", filterCategory = "all", filterSearch = ""; let cloudReady = false, cloudUser = null, db = null; let incomeChart = null, expenseChart = null, trendChart = null; let importMessage = null; let fsDoc = null, fsSetDoc = null;
+let lockHashAlgo = localStorage.getItem('registro-lock-hash-algo') || 'legacy';
+
+function showImportMessage(type, text, ms = 4000) {
+  importMessage = { type, text };
+  renderAll();
+  setTimeout(() => { importMessage = null; renderAll(); }, ms);
+}
+
+// Genera in automatico le occorrenze mancanti delle spese/entrate "Fissa" (es. abbonamenti,
+// affitto) fino ad oggi. Una serie e' identificata da tipo+categoria+conto+nota+importo; la
+// ricerca di duplicati per data rende l'operazione idempotente anche se gira piu' volte
+// (es. dopo un sync cloud che sovrascrive `data`).
+function autoGenerateRecurring() {
+  const today = startOfDay(new Date());
+  const groups = new Map();
+  data.transactions.forEach((t) => {
+    if (t.type === "trasferimento" || t.frequency !== "fissa") return;
+    const key = [t.type, t.category, t.wallet, t.note || "", t.amount].join("|");
+    const cur = groups.get(key);
+    if (!cur || t.date > cur.date) groups.set(key, t);
+  });
+  const additions = [];
+  groups.forEach((last) => {
+    let nextDate = addPeriod(parseISODate(last.date), "month", 1);
+    let guard = 0;
+    while (startOfDay(nextDate) <= today && guard < 24) {
+      const iso = toISODate(nextDate);
+      const sameSlot = (t) => t.type === last.type && t.category === last.category && t.wallet === last.wallet && (t.note || "") === (last.note || "") && t.amount === last.amount && t.date === iso;
+      if (!data.transactions.some(sameSlot) && !additions.some(sameSlot)) {
+        additions.push({ id: genId(), type: last.type, category: last.category, wallet: last.wallet, frequency: "fissa", amount: last.amount, date: iso, note: last.note || "", auto: true });
+      }
+      nextDate = addPeriod(nextDate, "month", 1);
+      guard++;
+    }
+  });
+  if (additions.length) {
+    data = { ...data, transactions: [...data.transactions, ...additions] };
+    saveLocal();
+    showImportMessage("ok", `${additions.length} movimento/i fisso/i generato/i automaticamente.`);
+  }
+}
+autoGenerateRecurring();
 
 async function persist(next) { data = next; saveLocal(); renderAll(); if (cloudReady && cloudUser && db && fsSetDoc) { fsSetDoc(fsDoc(db, "registro", cloudUser.uid), data).catch(() => setSync("error")); } }
 function setSync(state) { const el = document.getElementById("syncDot"); const label = document.getElementById("syncLabel"); if (!el) return; el.className = "sync-dot" + (state === "ok" ? " ok" : state === "pending" ? " pending" : state === "error" ? " error" : ""); if (label) label.textContent = state === "ok" ? "In Sincronia" : state === "pending" ? "Sincronizzazione..." : state === "error" ? "Errore Cloud" : cloudReady ? "In attesa..." : "Modalità Locale"; }
@@ -611,8 +678,14 @@ function renderAll() {
     const incomeBreakdown = buildBreakdown(inPeriod.filter((t) => t.type === "entrata"));
     const expenseBreakdown = buildBreakdown(inPeriod.filter((t) => t.type === "uscita"));
     const allCats = [...data.categories.entrata, ...data.categories.uscita].filter((v, i, a) => a.indexOf(v) === i);
-    const filteredList = inPeriod.filter((t) => (filterWallet === "all" || t.wallet === filterWallet || t.fromWallet === filterWallet || t.toWallet === filterWallet) && (filterCategory === "all" || t.category === filterCategory))
-      .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+    const searchQ = filterSearch.trim().toLowerCase();
+    const filteredList = inPeriod.filter((t) => {
+      if (filterWallet !== "all" && t.wallet !== filterWallet && t.fromWallet !== filterWallet && t.toWallet !== filterWallet) return false;
+      if (filterCategory !== "all" && t.category !== filterCategory) return false;
+      if (!searchQ) return true;
+      const haystack = [t.note, t.category, t.wallet, t.fromWallet, t.toWallet].filter(Boolean).join(" ").toLowerCase();
+      return haystack.includes(searchQ);
+    }).sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
     const trendData = Array.from({ length: 6 }, (_, i) => {
       const off = offset - (5 - i);
       const r = getPeriodRange(period, off);
@@ -750,6 +823,7 @@ function renderAll() {
         <h2 class="section-heading">Movimenti</h2>
         
         <div class="filters">
+          <input type="search" id="filterSearchInput" class="filter-search" placeholder="🔎 Cerca nelle note..." value="${esc(filterSearch)}">
           <select id="filterWalletSel"><option value="all">Tutti i conti</option>${data.wallets.map((w, i) => `<option value="${esc(w.name)}" ${filterWallet === w.name ? "selected" : ""}>${WALLET_EMOJI[i % WALLET_EMOJI.length]} ${esc(w.name)}</option>`).join("")}</select>
           <select id="filterCategorySel"><option value="all">Tutte le categorie</option>${allCats.map((c) => `<option value="${esc(c)}" ${filterCategory === c ? "selected" : ""}>${categoryEmoji(c)} ${esc(c)}</option>`).join("")}</select>
           <button type="button" class="btn-filter" id="btnExportCsv">
@@ -900,7 +974,7 @@ function renderTxRow(t, index = 0) {
     content = `
       <div class="tx-main">
         <span class="tx-cat">${catBadge(t.category)}${esc(t.category)}</span>
-        <div class="tx-meta"><span>${formatShortDate(t.date)}</span><span>&bull; ${esc(t.wallet)}</span>${t.frequency ? `<span class="tag">${FREQ_LABELS[t.frequency]}</span>` : ""}${t.note ? `<span>&bull; ${esc(t.note)}</span>` : ""}</div>
+        <div class="tx-meta"><span>${formatShortDate(t.date)}</span><span>&bull; ${esc(t.wallet)}</span>${t.frequency ? `<span class="tag">${FREQ_LABELS[t.frequency]}</span>` : ""}${t.auto ? `<span class="tag" title="Generato automaticamente">Auto</span>` : ""}${t.note ? `<span>&bull; ${esc(t.note)}</span>` : ""}</div>
       </div>
       <div class="tx-actions">
         <span class="tx-amt amount-blur ${t.type === "entrata" ? "pos" : "neg"}">${t.type === "entrata" ? "+" : "−"}${formatCurrency(t.amount)}</span>
@@ -996,6 +1070,7 @@ function drawCharts(incomeBreakdown, expenseBreakdown, trendData) {
 }
 
 function bindEvents() {
+  txDeleteArmed = null;
   document.querySelectorAll(".tab-bar button").forEach((b) => b.onclick = () => { haptic('light'); currentSection = b.dataset.section; renderAll(); });
   document.querySelectorAll(".period-tabs button").forEach((b) => b.onclick = () => { haptic('light'); period = b.dataset.period; offset = 0; renderAll(); });
   const navPrev = document.getElementById("navPrev"); if (navPrev) navPrev.onclick = () => { haptic('light'); offset -= 1; renderAll(); };
@@ -1083,7 +1158,7 @@ function bindEvents() {
     const amount = Math.round(Number(String(document.getElementById("txAmount").value).replace(",", ".")) * 100) / 100;
     const dateVal = document.getElementById("txDate").value;
     const note = document.getElementById("txNote").value;
-    if (!amount || amount <= 0) return;
+    if (!amount || isNaN(amount) || amount <= 0) { showFormError("Inserisci un importo valido maggiore di zero."); return; }
     let payload;
     if (txType === "trasferimento") {
       const fromWallet = document.getElementById("txFromWallet").value;
@@ -1129,12 +1204,33 @@ function bindEvents() {
   });
   
   document.querySelectorAll("[data-del]").forEach((b) => b.onclick = () => {
-     haptic('heavy');
-     persist({ ...data, transactions: data.transactions.filter((t) => t.id !== b.dataset.del) });
+    const id = b.dataset.del;
+    haptic('heavy');
+    if (txDeleteArmed !== id) {
+      // arma senza un renderAll() completo: un re-render azzererebbe lo scroll dello
+      // swipe e richiuderebbe subito il pulsante appena rivelato dall'utente
+      txDeleteArmed = id;
+      b.textContent = "✓";
+      b.classList.add("armed");
+      clearTimeout(b._armTimer);
+      b._armTimer = setTimeout(() => { if (txDeleteArmed === id) { txDeleteArmed = null; b.textContent = "🗑"; b.classList.remove("armed"); } }, 3000);
+      return;
+    }
+    txDeleteArmed = null;
+    persist({ ...data, transactions: data.transactions.filter((t) => t.id !== id) });
   });
 
   const filterWalletSel = document.getElementById("filterWalletSel"); if (filterWalletSel) filterWalletSel.onchange = (e) => { filterWallet = e.target.value; renderAll(); };
   const filterCategorySel = document.getElementById("filterCategorySel"); if (filterCategorySel) filterCategorySel.onchange = (e) => { filterCategory = e.target.value; renderAll(); };
+  const filterSearchInput = document.getElementById("filterSearchInput");
+  if (filterSearchInput) filterSearchInput.oninput = (e) => {
+    filterSearch = e.target.value;
+    renderAll();
+    // renderAll() ricostruisce il DOM: recupera il nuovo input e ridai il focus con
+    // il cursore in fondo, altrimenti ad ogni carattere digitato si perderebbe il focus
+    const el = document.getElementById("filterSearchInput");
+    if (el) { el.focus(); const v = el.value; el.setSelectionRange(v.length, v.length); }
+  };
 
   const btnToggleCategories = document.getElementById("btnToggleCategories"); if (btnToggleCategories) btnToggleCategories.onclick = () => { categoriesOpen = !categoriesOpen; renderAll(); };
   document.querySelectorAll("[data-rmcat]").forEach((b) => b.onclick = () => {
@@ -1186,9 +1282,10 @@ function bindEvents() {
     if (!ok) { lockSetupError = "Impossibile registrare Face ID. Riprova."; renderAll(); return; }
     const salt = genSaltHex();
     const hash = await hashPassword(p1, salt);
-    lockPassSalt = salt; lockPassHash = hash; lockEnabled = true;
+    lockPassSalt = salt; lockPassHash = hash; lockEnabled = true; lockHashAlgo = "pbkdf2";
     localStorage.setItem('registro-lock-pass-salt', salt);
     localStorage.setItem('registro-lock-pass-hash', hash);
+    localStorage.setItem('registro-lock-hash-algo', 'pbkdf2');
     localStorage.setItem('registro-lock-enabled', 'true');
     lockSetupOpen = false;
     haptic('success');
@@ -1198,11 +1295,12 @@ function bindEvents() {
   const lockDisableConfirm = document.getElementById("lockDisableConfirm");
   if (lockDisableConfirm) lockDisableConfirm.onclick = async () => {
     const pw = document.getElementById("lockDisablePass").value;
-    const hash = await hashPassword(pw, lockPassSalt);
-    if (hash !== lockPassHash) { lockDisableError = "Password errata."; haptic('heavy'); renderAll(); return; }
-    lockEnabled = false; lockCredId = null; lockPassHash = null; lockPassSalt = null; lockDisableOpen = false;
+    const ok = await verifyLockPassword(pw);
+    if (!ok) { lockDisableError = "Password errata."; haptic('heavy'); renderAll(); return; }
+    lockEnabled = false; lockCredId = null; lockPassHash = null; lockPassSalt = null; lockHashAlgo = "legacy"; lockDisableOpen = false;
     localStorage.removeItem('registro-lock-enabled'); localStorage.removeItem('registro-lock-cred-id');
     localStorage.removeItem('registro-lock-pass-hash'); localStorage.removeItem('registro-lock-pass-salt');
+    localStorage.removeItem('registro-lock-hash-algo');
     haptic('success');
     renderAll();
   };
@@ -1215,14 +1313,18 @@ function flashHero() {
   setTimeout(() => el.classList.remove("flash"), 500);
 }
 
+function csvField(v) {
+  const s = String(v == null ? "" : v);
+  return /[;"\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
 function exportCSV() {
   const header = ["Data", "Tipo", "Categoria", "Portafoglio", "Frequenza", "Importo", "Nota"];
   const rows = data.transactions.slice().sort((a, b) => a.date.localeCompare(b.date)).map((t) => {
     let cat = t.type === 'trasferimento' ? 'Trasferimento' : (t.category || '');
     let wal = t.type === 'trasferimento' ? `${t.fromWallet} -> ${t.toWallet}` : (t.wallet || '');
-    return [t.date, t.type, cat, wal, t.frequency || "", t.amount.toFixed(2).replace(".", ","), (t.note || "").replace(/;/g, ",")];
+    return [t.date, t.type, cat, wal, t.frequency || "", t.amount.toFixed(2).replace(".", ","), t.note || ""].map(csvField);
   });
-  const csv = [header, ...rows].map((r) => r.join(";")).join("\n");
+  const csv = [header.map(csvField), ...rows].map((r) => r.join(";")).join("\r\n");
   downloadBlob(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }), "registro.csv");
 }
 function downloadBackup() { downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), "registro-backup.json"); }
@@ -1240,11 +1342,10 @@ document.getElementById("restoreInput").addEventListener("change", (e) => {
     try {
       const parsed = JSON.parse(String(reader.result));
       if (!parsed || !Array.isArray(parsed.wallets) || !Array.isArray(parsed.transactions) || !parsed.categories) throw new Error("invalido");
-      persist(parsed); importMessage = { type: "ok", text: "Ripristinato con successo." }; renderAll();
+      persist(parsed); showImportMessage("ok", "Ripristinato con successo.");
     } catch (err) {
-      importMessage = { type: "error", text: "File non valido." }; renderAll();
+      showImportMessage("error", "File non valido.");
     }
-    setTimeout(() => { importMessage = null; renderAll(); }, 4000);
   };
   reader.readAsText(file);
 });
