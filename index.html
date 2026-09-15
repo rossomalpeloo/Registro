@@ -30,10 +30,12 @@
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; padding: 0; background: var(--bg-color); transition: background 0.4s ease; }
+html { scroll-padding-bottom: calc(160px + env(safe-area-inset-bottom, 20px)); }
+input, select, button { scroll-margin-bottom: calc(160px + env(safe-area-inset-bottom, 20px)); }
 
 body { 
   min-height: 100vh; min-height: 100dvh; 
-  padding: env(safe-area-inset-top, 20px) 16px calc(140px + env(safe-area-inset-bottom, 20px)); 
+  padding: env(safe-area-inset-top, 20px) 16px calc(160px + env(safe-area-inset-bottom, 20px));
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, sans-serif; 
   color: var(--text-main); -webkit-text-size-adjust: 100%; 
   -webkit-font-smoothing: antialiased; 
@@ -1531,7 +1533,8 @@ function bindEvents() {
       const currency = (walletByName(wallet) || {}).currency || "EUR";
       const existingTx = editingId ? data.transactions.find((t) => t.id === editingId) : null;
       const seriesId = frequency === "fissa" ? ((existingTx && existingTx.seriesId) || genId()) : undefined;
-      payload = { type: txType, amount, category, wallet, currency, frequency, seriesId, date: dateVal, note };
+      payload = { type: txType, amount, category, wallet, currency, frequency, date: dateVal, note };
+      if (seriesId !== undefined) payload.seriesId = seriesId;
     }
     let transactions;
     if (editingId) { transactions = data.transactions.map((t) => t.id === editingId ? { id: t.id, ...payload } : t); editingId = null; }
