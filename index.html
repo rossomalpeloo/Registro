@@ -770,21 +770,42 @@ async function initFirebase() {
     // in cui un cloud "vuoto" potrebbe essere solo un seed non ancora arrivato.
     function applyCloudState() {
       if (cloudSettings === null || cloudWallets === null || cloudTransactions === null) return;
+      const categories = cloudSettings.categories || { ...DEFAULT_CATEGORIES };
+      if (!categories.entrata) categories.entrata = [...DEFAULT_CATEGORIES.entrata];
+      if (!categories.uscita) categories.uscita = [...DEFAULT_CATEGORIES.uscita];
+
+      // Unione per id invece di sovrascrittura diretta: se un dispositivo viene chiuso
+      // a forza subito dopo un salvataggio, la scrittura verso Firestore puo' non fare
+      // in tempo ad accodarsi prima che il processo termini. Al riavvio, il cloud
+      // risulterebbe "indietro" di quell'elemento: trattarlo come locale-non-ancora-
+      // sincronizzato (invece che come cancellato) evita di perdere dati appena inseriti,
+      // e lo ripropone al cloud cosi' la sincronizzazione si autoripara.
+      const cloudWalletsMap = new Map(cloudWallets.map((w) => [w.id, w]));
+      const localOnlyWallets = (data.wallets || []).filter((w) => !cloudWalletsMap.has(w.id));
+      const cloudTxMap = new Map(cloudTransactions.map((t) => [t.id, t]));
+      const localOnlyTx = (data.transactions || []).filter((t) => !cloudTxMap.has(t.id));
+
       const merged = {
-        wallets: cloudWallets,
-        categories: cloudSettings.categories || { ...DEFAULT_CATEGORIES },
-        transactions: cloudTransactions,
+        wallets: [...cloudWallets, ...localOnlyWallets],
+        categories,
+        transactions: [...cloudTransactions, ...localOnlyTx],
         stoppedSeriesIds: cloudSettings.stoppedSeriesIds || [],
       };
-      if (!merged.categories.entrata) merged.categories.entrata = [...DEFAULT_CATEGORIES.entrata];
-      if (!merged.categories.uscita) merged.categories.uscita = [...DEFAULT_CATEGORIES.uscita];
       if (!firstApplyDone) {
         const localHasData = (data.wallets && data.wallets.length) || (data.transactions && data.transactions.length);
-        const cloudIsEmpty = merged.wallets.length === 0 && merged.transactions.length === 0;
+        const cloudIsEmpty = cloudWallets.length === 0 && cloudTransactions.length === 0;
         if (localHasData && cloudIsEmpty) return;
       }
       firstApplyDone = true;
       data = merged; saveLocal(); renderAll();
+
+      if (localOnlyWallets.length || localOnlyTx.length) {
+        const uid = cloudUser.uid;
+        Promise.all([
+          ...localOnlyWallets.map((w) => fsSetDoc(fsDoc(db, "registro", uid, "wallets", w.id), w)),
+          ...localOnlyTx.map((t) => fsSetDoc(fsDoc(db, "registro", uid, "transactions", t.id), t)),
+        ]).catch((e) => console.error("Ri-sincronizzazione elementi locali fallita", e));
+      }
     }
 
     onAuthStateChanged(authInstance, (user) => {
