@@ -53,6 +53,7 @@ body[data-theme="glass"] {
   --hero-shadow: 0 24px 48px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.2);
   --tab-bg: rgba(255, 255, 255, 0.75); --tab-shadow: 0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8);
   --tab-pos-b: max(20px, env(safe-area-inset-bottom)); --tab-pos-x: 20px; --tab-radius: 40px; --tab-label-display: flex;
+  --panel-tint: rgba(0, 0, 0, 0.03);
 }
 
 /* TEMA 3: PRO UI/UX (ULTRA DARK) */
@@ -62,7 +63,8 @@ body[data-theme="expert"] {
   --text-main: #FFFFFF; --text-sec: #A1A1AA; --separator: rgba(255,255,255,0.05);
   --radius-main: 28px; --radius-list: 0px; --hero-bg: #111112; --hero-text: #FFFFFF; --hero-shadow: 0 20px 50px rgba(0,0,0,0.6);
   --tab-bg: rgba(10, 10, 12, 0.85); --tab-shadow: 0 20px 40px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.05), inset 0 0 0 1px #27272A;
-  --tab-pos-b: max(24px, env(safe-area-inset-bottom)); --tab-pos-x: 50%; --tab-radius: 50px; --tab-label-display: none; 
+  --tab-pos-b: max(24px, env(safe-area-inset-bottom)); --tab-pos-x: 50%; --tab-radius: 50px; --tab-label-display: none;
+  --panel-tint: rgba(255, 255, 255, 0.04);
 }
 
 /* TEMA 2: MINIMALE BRUTALISTA (Bianco/Nero/Grigio, Linee Nette) */
@@ -71,6 +73,7 @@ body[data-theme="minimal"] {
   --control-bg: #F4F4F4; --text-main: #000000; --text-sec: #666666; --separator: #E5E5E5; 
   --radius-main: 0px; --radius-list: 0px; --hero-bg: #FFFFFF; --hero-text: #000000; --hero-shadow: none;
   --tab-bg: #FFFFFF; --tab-shadow: none; --tab-pos-b: 0; --tab-pos-x: 0; --tab-radius: 0; --tab-label-display: flex;
+  --panel-tint: rgba(0, 0, 0, 0.03);
 }
 
 /* =========================================
@@ -88,8 +91,8 @@ body[data-theme="expert"] .hero-balance-card { padding: 1px; border: none; overf
 body[data-theme="expert"] .hero-card-content { background: rgba(15,15,18,0.95); border-radius: calc(var(--radius-main) - 1px); backdrop-filter: blur(20px); z-index: 2; position: relative; }
 body[data-theme="expert"] .hero-balance-card .glow-wrap { display: block; position: absolute; width: 250%; height: 250%; top: -75%; left: -75%; background: conic-gradient(from 0deg, transparent 70%, var(--ios-accent) 100%); animation: spinGlow 4s linear infinite; z-index: 1; }
 @keyframes spinGlow { 100% { transform: rotate(360deg); } }
-body[data-theme="expert"] .hero-balance-value { background: linear-gradient(110deg, #FFFFFF 0%, #71717A 40%, #FFFFFF 60%, #71717A 100%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: holoShine 4s linear infinite; text-shadow: none; }
-@keyframes holoShine { to { background-position: 200% center; } }
+body[data-theme="expert"] .hero-balance-value { background: linear-gradient(110deg, #FFFFFF 0%, #71717A 40%, #FFFFFF 60%, #71717A 100%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: holoShine 5s ease-in-out infinite alternate; text-shadow: none; }
+@keyframes holoShine { from { background-position: 0% center; } to { background-position: 200% center; } }
 body[data-theme="expert"] .hero-figures > div { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.04); box-shadow: none; }
 body[data-theme="expert"] .wallet-stub { background: linear-gradient(135deg, #18181B, #09090B) !important; border: 1px solid rgba(255,255,255,0.08); overflow: hidden; }
 body[data-theme="expert"] .wallet-stub::before { content: ''; position: absolute; inset: 0; opacity: 0.15; background-image: radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px); background-size: 5px 5px; pointer-events: none; }
@@ -184,6 +187,16 @@ body[data-theme="minimal"] .swipe-hint { display: none; } /* Nascondi hint testu
    UI COMPONENTS & LAYOUT STANDARD
    ========================================= */
 button, input, select { transition: transform 0.25s var(--ease-spring), opacity 0.25s, background 0.25s, box-shadow 0.25s; }
+button:not(:disabled):active { transform: scale(0.96); }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:not(:disabled):hover { filter: brightness(1.08); }
+  .btn-ghost:not(:disabled):hover { background: var(--card-bg); }
+  .wallet-stub:hover { transform: translateY(-3px); box-shadow: 0 16px 32px rgba(0,0,0,0.2); }
+  .chroma-btn:hover { transform: scale(1.12); }
+  .tab-bar button:not(.tab-active):hover { color: var(--text-main); }
+  .nav-arrow:hover { background: var(--card-bg); }
+}
 .receipt { position: relative; max-width: 600px; margin: 0 auto; padding: 16px 0 0; }
 
 .ambient-blob { position: absolute; border-radius: 50%; filter: blur(65px); animation: floatBlob 18s infinite ease-in-out alternate; }
@@ -215,7 +228,7 @@ button, input, select { transition: transform 0.25s var(--ease-spring), opacity 
 .btn-privacy:active { transform: scale(0.9); }
 
 .amount-blur { transition: filter 0.25s var(--ease-smooth), opacity 0.25s ease; display: inline-block; }
-body.privacy-on .amount-blur { filter: blur(7px); opacity: 0.9; user-select: none; -webkit-user-select: none; }
+body.privacy-on .amount-blur { filter: blur(14px); opacity: 0.85; user-select: none; -webkit-user-select: none; }
 
 /* --- BLOCCO FACE ID / PASSWORD --- */
 .lock-screen { min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 14px; padding: 40px 20px; animation: slideUpFade 0.5s var(--ease-spring); }
@@ -228,7 +241,6 @@ body.privacy-on .amount-blur { filter: blur(7px); opacity: 0.9; user-select: non
 .lock-pass-wrap input:focus { border-color: var(--ios-accent); }
 .lock-status-hint { font-size: 13px; color: var(--text-sec); padding: 14px 22px 0; margin: 0; }
 .form-error { color: var(--ios-red); font-weight: 600; font-size: 14px; margin: 4px 0 0; padding: 0 22px; }
-.btn-ghost[disabled] { opacity: 0.4; }
 
 .hero-figures { display: flex; gap: 14px; margin-top: 24px;}
 .hero-figures > div { flex: 1; background: rgba(255,255,255,0.08); padding: 18px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 1px 0 rgba(255,255,255,0.1); }
@@ -250,6 +262,8 @@ body.privacy-on .amount-blur { filter: blur(7px); opacity: 0.9; user-select: non
 .wallets-row { display: flex; gap: 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 10px 4px 30px; margin: -10px -4px 0; scroll-snap-type: x mandatory; }
 .wallet-tab-wrap { position: relative; flex: 0 0 auto; scroll-snap-align: start; }
 .wallet-stub { background: var(--wc); border: none; border-radius: var(--radius-main); padding: 24px; min-width: 175px; height: 130px; cursor: pointer; text-align: left; color: #fff; box-shadow: 0 12px 28px rgba(0,0,0,0.15); display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; transition: 0.3s var(--ease-spring); }
+.wallet-stub-active { outline: 3px solid rgba(255,255,255,0.75); outline-offset: -3px; box-shadow: 0 16px 34px rgba(0,0,0,0.28); }
+.wallet-stub-currency { position: absolute; top: 14px; right: 14px; z-index: 2; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; background: rgba(255,255,255,0.25); padding: 3px 8px; border-radius: 8px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.2); }
 .wallet-stub-name { display: block; font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 0.5px; text-shadow: 0 1px 4px rgba(0,0,0,0.2); position:relative; z-index:2;}
 .wallet-stub-balance { font-weight: 800; font-size: 26px; color: #fff; letter-spacing:-0.5px; text-shadow: 0 2px 8px rgba(0,0,0,0.2); position:relative; z-index:2; transition: 0.3s;}
 .wallet-add-stub { border: 2px dashed var(--text-sec); border-radius: var(--radius-main); color: var(--text-sec); font-weight: 600; font-size: 28px; display: flex; align-items: center; justify-content: center; min-width: 120px; height: 130px; background: var(--control-bg); backdrop-filter:var(--card-blur); opacity:0.6; }
@@ -259,18 +273,22 @@ body.privacy-on .amount-blur { filter: blur(7px); opacity: 0.9; user-select: non
 .ios-list-item:last-child { border-bottom: none; }
 .ios-list-item label { font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 14px; }
 .ios-list-item input, .ios-list-item select { border: none; text-align: right; background: transparent; font-size: 16px; font-weight: 600; color: var(--text-sec); padding: 0; outline: none; width: 60%; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; letter-spacing: -0.3px; }
-.ios-list-item select { direction: rtl; }
+.ios-list-item select { -webkit-appearance: none; appearance: none; padding-right: 20px; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right center; }
 .ios-list-item input:focus, .ios-list-item select:focus { color: var(--ios-accent); }
+.wallet-edit-actions { display: flex; gap: 12px; padding: 18px 22px; }
+.panel-reveal { animation: slideDownFade 0.35s var(--ease-smooth); }
 .currency-prefix { color: var(--text-sec); font-weight: 600; }
 .amount-wrap { display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
 .amount-wrap input { width: auto; max-width: 140px; font-weight: 800; color: var(--text-main); font-size: 20px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;}
 
-.select-icon-badge { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; color: #fff; border-radius: 10px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 10px rgba(0,0,0,0.15); }
-.select-icon-badge svg { width: 18px; height: 18px; }
+.select-icon-badge, .cat-icon { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; flex: 0 0 auto; color: #fff; border-radius: 10px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 10px rgba(0,0,0,0.15); }
+.select-icon-badge svg, .cat-icon svg { width: 18px; height: 18px; }
 .select-color-dot { width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 6px rgba(0,0,0,0.15); }
 
 .segmented { display: flex; background: var(--control-bg); backdrop-filter:var(--card-blur); padding: 4px; border-radius: 16px; margin-bottom: 24px; border: 1px solid var(--card-border); box-shadow: var(--card-shadow);}
-.segmented button { flex: 1; padding: 12px; background: transparent; border: none; font-size: 15px; font-weight: 600; color: var(--text-sec); border-radius: 12px; transition: 0.2s; }
+.segmented button { flex: 1; padding: 12px; background: transparent; border: none; font-size: 15px; font-weight: 600; color: var(--text-sec); border-radius: 12px; transition: 0.3s var(--ease-spring); }
 .segmented button.seg-active { background: var(--card-bg); box-shadow: 0 4px 12px rgba(0,0,0,0.08); color:var(--text-main);}
 .segmented button.seg-active.seg-income { color: var(--ios-green); }
 .segmented button.seg-active.seg-expense { color: var(--ios-red); }
@@ -298,6 +316,7 @@ body.privacy-on .amount-blur { filter: blur(7px); opacity: 0.9; user-select: non
 .tx-amt { font-weight: 800; font-size: 19px; white-space: nowrap; text-align: right; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; transition: 0.3s;}
 .tx-amt.pos { color: var(--ios-green); } .tx-amt.neg { color: var(--text-main); }
 .tx-meta { font-size: 14px; color: var(--text-sec); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-left: 48px; font-weight: 500; }
+.tx-meta .tag { background: var(--control-bg); color: var(--text-sec); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; padding: 3px 8px; border-radius: 8px; border: 1px solid var(--card-border); }
 .swipe-hint { font-size:12px; color:var(--text-sec); text-align:center; padding:12px 0 4px; font-weight: 600; }
 
 /* FILTRI ELEGANTI A SCORRIMENTO */
@@ -346,6 +365,25 @@ body.privacy-on .amount-blur { filter: blur(7px); opacity: 0.9; user-select: non
 .chroma-btn { width: 36px; height: 36px; border-radius: 50%; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: 0.3s var(--ease-spring); }
 .chroma-btn:active { transform: scale(0.85); }
 .chroma-btn.active { outline: 3px solid var(--text-main); outline-offset: 3px; }
+
+.import-message { padding: 14px 18px; border-radius: var(--radius-main); margin-bottom: 20px; font-size: 14px; font-weight: 600; text-align: center; background: var(--card-bg); backdrop-filter: var(--card-blur); border: 1px solid var(--card-border); box-shadow: var(--card-shadow); color: var(--text-main); animation: slideDownFade 0.4s var(--ease-smooth); }
+.import-message.ok { color: var(--ios-green); }
+.import-message.error { color: var(--ios-red); }
+
+.wallets-empty-hint { color: var(--text-sec); font-size: 14px; text-align: center; padding: 10px 0 24px; font-style: italic; opacity: 0.8; }
+
+.coin-frame { max-width: 200px; margin: 0 auto 24px; }
+.leader-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--separator); }
+.leader-row:last-child { border-bottom: none; }
+.leader-name { display: flex; align-items: center; gap: 14px; font-weight: 600; font-size: 15px; color: var(--text-main); }
+.leader-value { font-weight: 800; font-size: 15px; color: var(--text-main); font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; white-space: nowrap; }
+
+.tx-main { flex: 1 1 auto; min-width: 0; }
+.tx-actions { flex: 0 0 auto; text-align: right; }
+
+.segmented.compact { padding: 3px; margin-bottom: 0; }
+.segmented.compact button { padding: 8px 10px; font-size: 13px; }
+.convert-preview { font-size: 14px; font-weight: 600; color: var(--text-main); line-height: 1.6; }
 
 .app-section { display: none; }
 .app-section.active { display: block; animation: slideUpFade 0.5s var(--ease-spring) forwards; }
@@ -527,6 +565,7 @@ const FREQUENCIES = [{ id: "fissa", label: "Fissa" }, { id: "variabile", label: 
 const FREQ_LABELS = { fissa: "Fissa", variabile: "Variabile", occasionale: "Occasionale" };
 const PERIODS = [{ id: "day", label: "Giorno" }, { id: "week", label: "Sett" }, { id: "month", label: "Mese" }, { id: "year", label: "Anno" }];
 const PALETTE = ["#007AFF", "#FF9500", "#34C759", "#AF52DE", "#FF3B30", "#5856D6", "#FF2D55", "#32ADE6", "#00C7BE", "#A2845E"];
+const CURRENCIES = { EUR: { symbol: "€", locale: "it-IT" }, USD: { symbol: "$", locale: "en-US" } };
 const WALLET_GRADIENTS = [
   "linear-gradient(135deg, #007AFF, #00C7BE)", "linear-gradient(135deg, #FF9500, #FFCC00)",
   "linear-gradient(135deg, #34C759, #30D158)", "linear-gradient(135deg, #AF52DE, #FF2D55)",
@@ -535,7 +574,7 @@ const WALLET_GRADIENTS = [
 
 const CAT_ICON_SVGS = {
   briefcase: `<path d="M3 8h18v11H3z"></path><path d="M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path>`, bolt: `<path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"></path>`, gift: `<path d="M4 9h16v11H4z"></path><path d="M4 9h16M12 9v11M12 9c-1.5-4-6-4-6 0M12 9c1.5-4 6-4 6 0"></path>`,
-  refund: `<path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 3v5h5"></path>`, invest: `<path d="M3 17l6-6 4 4 8-8"></path><path d="M15 7h6v6"></path>`, fork: `<path d="M6 2v6"></path><path d="M9 2v6"></path><path d="M12 2v6"></path><path d="M6 8a3 3 0 0 0 6 0"></path><path d="M9 8v14"></path>`,
+  refund: `<path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 3v5h5"></path>`, invest: `<path d="M3 17l6-6 4 4 8-8"></path><path d="M15 7h6v6"></path>`, fork: `<path d="M9 2v6"></path><path d="M12 2v6"></path><path d="M15 2v6"></path><path d="M9 8a3 3 0 0 0 6 0"></path><path d="M12 8v14"></path>`,
   home: `<path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path>`, car: `<path d="M4 16V11l2-5h12l2 5v5"></path><path d="M4 16h16"></path><circle cx="7.5" cy="16.5" r="1.5"></circle><circle cx="16.5" cy="16.5" r="1.5"></circle>`, heart: `<path d="M12 20s-7-4.5-9.5-9A5 5 0 0 1 12 6a5 5 0 0 1 9.5 5c-2.5 4.5-9.5 9-9.5 9z"></path>`,
   play: `<circle cx="12" cy="12" r="9"></circle><path d="M10 8l6 4-6 4V8z" fill="currentColor" stroke="none"></path>`, bag: `<path d="M6 8h12l-1 12H7L6 8z"></path><path d="M9 8V6a3 3 0 0 1 6 0v2"></path>`, repeat: `<path d="M4 4v5h5"></path><path d="M20 20v-5h-5"></path><path d="M20 9A8 8 0 0 0 6.3 5.3L4 9"></path><path d="M4 15a8 8 0 0 0 13.7 3.7L20 15"></path>`, book: `<path d="M4 5c3-1.5 6-1.5 8 0v14c-2-1.5-5-1.5-8 0V5z"></path><path d="M20 5c-3-1.5-6-1.5-8 0v14c2-1.5 5-1.5 8 0V5z"></path>`, tag: `<path d="M12 2 2 12l10 10 10-10L12 2z"></path><circle cx="12" cy="9" r="1.5" fill="currentColor" stroke="none"></circle>`,
 };
@@ -566,9 +605,38 @@ function getPeriodStart(period, ref) { if (period === "day") return startOfDay(r
 function getPeriodRange(period, offset) { const today = new Date(); const ref = addPeriod(today, period, offset); const start = getPeriodStart(period, ref); const end = addPeriod(start, period, 1); return { start, end }; }
 function formatPeriodLabel(period, start) { if (period === "day") return new Intl.DateTimeFormat("it-IT", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(start); if (period === "week") { const end = new Date(start); end.setDate(end.getDate() + 6); const fmt = new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short" }); return `${fmt.format(start)} – ${fmt.format(end)}`; } if (period === "month") return new Intl.DateTimeFormat("it-IT", { month: "long", year: "numeric" }).format(start); return new Intl.DateTimeFormat("it-IT", { year: "numeric" }).format(start); }
 function formatPeriodShortLabel(period, start) { if (period === "month") return new Intl.DateTimeFormat("it-IT", { month: "short" }).format(start); if (period === "year") return new Intl.DateTimeFormat("it-IT", { year: "numeric" }).format(start); return new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short" }).format(start); }
-function formatCurrency(v) { return new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(v || 0); }
+function formatCurrency(v, currency) { const cur = CURRENCIES[currency] ? currency : "EUR"; return new Intl.NumberFormat(CURRENCIES[cur].locale, { style: "currency", currency: cur }).format(v || 0); }
+
+// --- CAMBIO VALUTA (EUR/USD) ---
+// Tasso EUR->USD aggiornato dall'API gratuita Frankfurter (dati ECB) e messo in cache in
+// localStorage: se il fetch fallisce (offline, rete lenta) si continua a usare l'ultimo
+// tasso noto, o un valore di fallback ragionevole al primissimo avvio.
+let fxRates = (() => { try { return JSON.parse(localStorage.getItem("registro-fx")); } catch (e) { return null; } })() || { EURUSD: 1.08, updatedAt: 0 };
+const FX_REFRESH_MS = 6 * 60 * 60 * 1000;
+function convert(amount, fromCur, toCur) {
+  if (fromCur === toCur) return amount;
+  const rate = fxRates.EURUSD || 1.08;
+  if (fromCur === "EUR" && toCur === "USD") return amount * rate;
+  if (fromCur === "USD" && toCur === "EUR") return amount / rate;
+  return amount;
+}
+function toEUR(amount, cur) { return convert(amount, cur || "EUR", "EUR"); }
+async function refreshExchangeRate() {
+  try {
+    const res = await fetch("https://api.frankfurter.dev/v1/latest?from=EUR&to=USD");
+    if (!res.ok) throw new Error("fx http " + res.status);
+    const json = await res.json();
+    const rate = json && json.rates && json.rates.USD;
+    if (rate) {
+      fxRates = { EURUSD: rate, updatedAt: Date.now() };
+      localStorage.setItem("registro-fx", JSON.stringify(fxRates));
+      if (typeof updateCurrencyUI === "function") updateCurrencyUI();
+    }
+  } catch (e) { console.error("Aggiornamento tasso di cambio fallito", e); }
+}
+if (Date.now() - (fxRates.updatedAt || 0) > FX_REFRESH_MS) refreshExchangeRate();
 function formatShortDate(iso) { return new Intl.DateTimeFormat("it-IT", { day: "2-digit", month: "short" }).format(parseISODate(iso)); }
-function buildBreakdown(list) { const map = {}; list.forEach((t) => { map[t.category] = (map[t.category] || 0) + t.amount; }); return Object.entries(map).map(([name, value]) => ({ name, value, color: colorForName(name) })).sort((a, b) => b.value - a.value); }
+function buildBreakdown(list) { const map = {}; list.forEach((t) => { map[t.category] = (map[t.category] || 0) + amountInEUR(t); }); return Object.entries(map).map(([name, value]) => ({ name, value, color: colorForName(name) })).sort((a, b) => b.value - a.value); }
 function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
 function loadLocal() { try { const raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; } }
@@ -579,8 +647,10 @@ let data = { wallets: (savedData && savedData.wallets) ? savedData.wallets : [],
 if (!data.categories.entrata) data.categories.entrata = [...DEFAULT_CATEGORIES.entrata];
 if (!data.categories.uscita) data.categories.uscita = [...DEFAULT_CATEGORIES.uscita];
 
-let currentSection = "home"; let period = "month"; let offset = 0; let txType = "uscita"; let editingId = null; let activeWalletEdit = null; let walletFormOpen = false; let walletDeleteArmed = null; let txDeleteArmed = null; let resetArmed = false; let categoriesOpen = false; let filterWallet = "all", filterCategory = "all", filterSearch = ""; let cloudReady = false, cloudUser = null, db = null; let incomeChart = null, expenseChart = null, trendChart = null; let importMessage = null; let fsDoc = null, fsSetDoc = null;
+let currentSection = "home"; let period = "month"; let offset = 0; let txType = "uscita"; let editingId = null; let activeWalletEdit = null; let walletFormOpen = false; let walletDeleteArmed = null; let txDeleteArmed = null; let resetArmed = false; let categoriesOpen = false; let filterWallet = "all", filterCategory = "all", filterSearch = ""; let cloudReady = false, cloudUser = null, db = null; let incomeChart = null, expenseChart = null, trendChart = null; let importMessage = null; let fsDoc = null, fsSetDoc = null, fsDeleteDoc = null, fsCollection = null; let seriesStopArmed = null;
 let lockHashAlgo = localStorage.getItem('registro-lock-hash-algo') || 'legacy';
+let authInstance = null, authFns = null; let accountFormOpen = null; let accountError = null; let accountBusy = false;
+let accountDraft = { email: "", pass1: "", pass2: "" };
 
 function showImportMessage(type, text, ms = 4000) {
   importMessage = { type, text };
@@ -588,18 +658,33 @@ function showImportMessage(type, text, ms = 4000) {
   setTimeout(() => { importMessage = null; renderAll(); }, ms);
 }
 
-// Genera in automatico le occorrenze mancanti delle spese/entrate "Fissa" (es. abbonamenti,
-// affitto) fino ad oggi. Una serie e' identificata da tipo+categoria+conto+nota+importo; la
-// ricerca di duplicati per data rende l'operazione idempotente anche se gira piu' volte
-// (es. dopo un sync cloud che sovrascrive `data`).
+// Ogni movimento "Fissa" appartiene a una serie identificata da seriesId (assegnato alla
+// creazione, o alla prima esecuzione per i dati storici). Modificare l'occorrenza piu' recente
+// di una serie ne aggiorna il "modello" per le generazioni future; modificarne una passata resta
+// isolato. "Interrompi serie" (stoppedSeriesIds) ferma solo le generazioni future, senza toccare
+// lo storico gia' registrato.
+function ensureSeriesIds() {
+  let changed = false;
+  const legacyGroups = new Map();
+  data.transactions.forEach((t) => {
+    if (t.type === "trasferimento" || t.frequency !== "fissa" || t.seriesId) return;
+    const key = [t.type, t.category, t.wallet, t.note || "", t.amount].join("|");
+    if (!legacyGroups.has(key)) legacyGroups.set(key, genId());
+    t.seriesId = legacyGroups.get(key);
+    changed = true;
+  });
+  if (changed) saveLocal();
+}
+
 function autoGenerateRecurring() {
+  ensureSeriesIds();
+  const stopped = new Set(data.stoppedSeriesIds || []);
   const today = startOfDay(new Date());
   const groups = new Map();
   data.transactions.forEach((t) => {
-    if (t.type === "trasferimento" || t.frequency !== "fissa") return;
-    const key = [t.type, t.category, t.wallet, t.note || "", t.amount].join("|");
-    const cur = groups.get(key);
-    if (!cur || t.date > cur.date) groups.set(key, t);
+    if (t.type === "trasferimento" || t.frequency !== "fissa" || !t.seriesId || stopped.has(t.seriesId)) return;
+    const cur = groups.get(t.seriesId);
+    if (!cur || t.date > cur.date) groups.set(t.seriesId, t);
   });
   const additions = [];
   groups.forEach((last) => {
@@ -607,9 +692,9 @@ function autoGenerateRecurring() {
     let guard = 0;
     while (startOfDay(nextDate) <= today && guard < 24) {
       const iso = toISODate(nextDate);
-      const sameSlot = (t) => t.type === last.type && t.category === last.category && t.wallet === last.wallet && (t.note || "") === (last.note || "") && t.amount === last.amount && t.date === iso;
+      const sameSlot = (t) => t.seriesId === last.seriesId && t.date === iso;
       if (!data.transactions.some(sameSlot) && !additions.some(sameSlot)) {
-        additions.push({ id: genId(), type: last.type, category: last.category, wallet: last.wallet, frequency: "fissa", amount: last.amount, date: iso, note: last.note || "", auto: true });
+        additions.push({ id: genId(), type: last.type, category: last.category, wallet: last.wallet, frequency: "fissa", amount: last.amount, currency: last.currency, seriesId: last.seriesId, date: iso, note: last.note || "", auto: true });
       }
       nextDate = addPeriod(nextDate, "month", 1);
       guard++;
@@ -623,34 +708,161 @@ function autoGenerateRecurring() {
 }
 autoGenerateRecurring();
 
-async function persist(next) { data = next; saveLocal(); renderAll(); if (cloudReady && cloudUser && db && fsSetDoc) { fsSetDoc(fsDoc(db, "registro", cloudUser.uid), data).catch(() => setSync("error")); } }
+// Porta/salva/movimenti sono sincronizzati in sottocollezioni Firestore (un documento per
+// elemento, identificato dal suo id) invece che come array dentro un unico documento: cosi'
+// due dispositivi che modificano elementi diversi nello stesso istante scrivono ciascuno solo
+// il proprio documento, senza sovrascriversi a vicenda. Solo categorie/impostazioni (che
+// cambiano di rado) restano un unico documento "settings".
+async function persist(next) {
+  const prev = data;
+  data = next;
+  saveLocal();
+  renderAll();
+  if (!(cloudReady && cloudUser && db && fsDoc && fsSetDoc && fsDeleteDoc && fsCollection)) return;
+  try {
+    await syncToCloud(prev, next);
+  } catch (e) { console.error("Sincronizzazione cloud fallita", e); setSync("error"); }
+}
+
+async function syncToCloud(prev, next) {
+  const uid = cloudUser.uid;
+  const writes = [];
+  const prevWallets = new Map((prev.wallets || []).map((w) => [w.id, w]));
+  const nextWallets = new Map((next.wallets || []).map((w) => [w.id, w]));
+  nextWallets.forEach((w, id) => { if (JSON.stringify(prevWallets.get(id)) !== JSON.stringify(w)) writes.push(fsSetDoc(fsDoc(db, "registro", uid, "wallets", id), w)); });
+  prevWallets.forEach((_, id) => { if (!nextWallets.has(id)) writes.push(fsDeleteDoc(fsDoc(db, "registro", uid, "wallets", id))); });
+
+  const prevTx = new Map((prev.transactions || []).map((t) => [t.id, t]));
+  const nextTx = new Map((next.transactions || []).map((t) => [t.id, t]));
+  nextTx.forEach((t, id) => { if (JSON.stringify(prevTx.get(id)) !== JSON.stringify(t)) writes.push(fsSetDoc(fsDoc(db, "registro", uid, "transactions", id), t)); });
+  prevTx.forEach((_, id) => { if (!nextTx.has(id)) writes.push(fsDeleteDoc(fsDoc(db, "registro", uid, "transactions", id))); });
+
+  const prevSettings = JSON.stringify({ categories: prev.categories, stoppedSeriesIds: prev.stoppedSeriesIds || [] });
+  const nextSettingsObj = { categories: next.categories, stoppedSeriesIds: next.stoppedSeriesIds || [] };
+  if (prevSettings !== JSON.stringify(nextSettingsObj)) writes.push(fsSetDoc(fsDoc(db, "registro", uid), nextSettingsObj));
+
+  if (writes.length) await Promise.all(writes);
+}
 function setSync(state) { const el = document.getElementById("syncDot"); const label = document.getElementById("syncLabel"); if (!el) return; el.className = "sync-dot" + (state === "ok" ? " ok" : state === "pending" ? " pending" : state === "error" ? " error" : ""); if (label) label.textContent = state === "ok" ? "In Sincronia" : state === "pending" ? "Sincronizzazione..." : state === "error" ? "Errore Cloud" : cloudReady ? "In attesa..." : "Modalità Locale"; }
 
+// L'app resta utilizzabile anche in modalita' anonima (un'identita' locale per dispositivo,
+// come da sempre): "Crea un account" collega quell'identita' anonima a un'email/password con
+// linkWithCredential, che mantiene lo stesso UID (quindi lo stesso documento Firestore) invece
+// di crearne uno nuovo vuoto - i dati esistenti restano quindi automaticamente al loro posto.
 async function initFirebase() {
   if (!firebaseConfig.apiKey || firebaseConfig.apiKey.includes("INSERISCI")) return;
   try {
     const [{ initializeApp }, authMod, fsMod] = await Promise.all([ import("https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"), import("https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js"), import("https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js") ]);
-    const { getAuth, signInAnonymously, onAuthStateChanged } = authMod; const { initializeFirestore, persistentLocalCache, persistentSingleTabManager, doc, setDoc, onSnapshot } = fsMod;
-    fsDoc = doc; fsSetDoc = setDoc; const app = initializeApp(firebaseConfig); const auth = getAuth(app); db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() }) });
-    onAuthStateChanged(auth, (user) => {
-      if (!user) return; cloudUser = user; cloudReady = true;
-      onSnapshot(doc(db, "registro", user.uid), { includeMetadataChanges: true }, (snap) => {
-        if (snap.exists()) { data = snap.data(); if (!data.categories.entrata) data.categories.entrata = [...DEFAULT_CATEGORIES.entrata]; if (!data.categories.uscita) data.categories.uscita = [...DEFAULT_CATEGORIES.uscita]; saveLocal(); } else if (!snap.metadata.fromCache) { setDoc(doc(db, "registro", user.uid), data); }
-        setSync(snap.metadata.hasPendingWrites || snap.metadata.fromCache ? "pending" : "ok"); renderAll();
+    const { getAuth, signInAnonymously, onAuthStateChanged, EmailAuthProvider, linkWithCredential, signInWithEmailAndPassword, signOut } = authMod;
+    const { initializeFirestore, persistentLocalCache, persistentSingleTabManager, doc, setDoc, deleteDoc, collection, onSnapshot } = fsMod;
+    fsDoc = doc; fsSetDoc = setDoc; fsDeleteDoc = deleteDoc; fsCollection = collection;
+    const app = initializeApp(firebaseConfig); authInstance = getAuth(app);
+    authFns = { EmailAuthProvider, linkWithCredential, signInWithEmailAndPassword, signOut, signInAnonymously };
+    db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() }) });
+
+    let unsubSettings = null, unsubWallets = null, unsubTx = null;
+    let cloudSettings = null, cloudWallets = null, cloudTransactions = null, migrating = false, firstApplyDone = false;
+
+    // Applica lo stato cloud solo quando settings/portafogli/movimenti hanno gia' riportato
+    // almeno una volta. Alla primissima applicazione, se il dispositivo ha gia' dati locali (es.
+    // account appena collegato da una sessione anonima) ma le sotto-collezioni cloud risultano
+    // ancora vuote, aspetta l'eco del seed invece di svuotare subito l'app: e' l'unica finestra
+    // in cui un cloud "vuoto" potrebbe essere solo un seed non ancora arrivato.
+    function applyCloudState() {
+      if (cloudSettings === null || cloudWallets === null || cloudTransactions === null) return;
+      const merged = {
+        wallets: cloudWallets,
+        categories: cloudSettings.categories || { ...DEFAULT_CATEGORIES },
+        transactions: cloudTransactions,
+        stoppedSeriesIds: cloudSettings.stoppedSeriesIds || [],
+      };
+      if (!merged.categories.entrata) merged.categories.entrata = [...DEFAULT_CATEGORIES.entrata];
+      if (!merged.categories.uscita) merged.categories.uscita = [...DEFAULT_CATEGORIES.uscita];
+      if (!firstApplyDone) {
+        const localHasData = (data.wallets && data.wallets.length) || (data.transactions && data.transactions.length);
+        const cloudIsEmpty = merged.wallets.length === 0 && merged.transactions.length === 0;
+        if (localHasData && cloudIsEmpty) return;
+      }
+      firstApplyDone = true;
+      data = merged; saveLocal(); renderAll();
+    }
+
+    onAuthStateChanged(authInstance, (user) => {
+      if (!user) return;
+      cloudUser = user; cloudReady = true;
+      if (unsubSettings) unsubSettings(); if (unsubWallets) unsubWallets(); if (unsubTx) unsubTx();
+      cloudSettings = null; cloudWallets = null; cloudTransactions = null; firstApplyDone = false;
+      const uid = user.uid;
+
+      unsubSettings = onSnapshot(doc(db, "registro", uid), { includeMetadataChanges: true }, async (snap) => {
+        if (snap.exists()) {
+          const raw = snap.data();
+          if (Array.isArray(raw.wallets) || Array.isArray(raw.transactions)) {
+            // formato precedente (un unico documento): migra una tantum verso le
+            // sotto-collezioni, poi ripulisce i campi legacy dal documento principale.
+            if (!snap.metadata.fromCache && !migrating) {
+              migrating = true;
+              try {
+                const writes = [];
+                (raw.wallets || []).forEach((w) => writes.push(setDoc(doc(db, "registro", uid, "wallets", w.id), w)));
+                (raw.transactions || []).forEach((t) => writes.push(setDoc(doc(db, "registro", uid, "transactions", t.id), t)));
+                await Promise.all(writes);
+                await setDoc(doc(db, "registro", uid), { categories: raw.categories || { ...DEFAULT_CATEGORIES }, stoppedSeriesIds: raw.stoppedSeriesIds || [] });
+              } catch (e) { console.error("Migrazione cloud fallita", e); }
+              migrating = false;
+            }
+            cloudSettings = { categories: raw.categories || { ...DEFAULT_CATEGORIES }, stoppedSeriesIds: raw.stoppedSeriesIds || [] };
+          } else {
+            cloudSettings = raw;
+          }
+        } else {
+          cloudSettings = { categories: data.categories || { ...DEFAULT_CATEGORIES }, stoppedSeriesIds: data.stoppedSeriesIds || [] };
+          if (!snap.metadata.fromCache) {
+            setDoc(doc(db, "registro", uid), cloudSettings);
+            (data.wallets || []).forEach((w) => setDoc(doc(db, "registro", uid, "wallets", w.id), w));
+            (data.transactions || []).forEach((t) => setDoc(doc(db, "registro", uid, "transactions", t.id), t));
+          }
+        }
+        setSync(snap.metadata.hasPendingWrites || snap.metadata.fromCache ? "pending" : "ok");
+        applyCloudState();
       }, () => setSync("error"));
+
+      unsubWallets = onSnapshot(collection(db, "registro", uid, "wallets"), { includeMetadataChanges: true }, (qsnap) => {
+        cloudWallets = qsnap.docs.map((d) => d.data());
+        setSync(qsnap.metadata.hasPendingWrites || qsnap.metadata.fromCache ? "pending" : "ok");
+        applyCloudState();
+      }, () => setSync("error"));
+
+      unsubTx = onSnapshot(collection(db, "registro", uid, "transactions"), { includeMetadataChanges: true }, (qsnap) => {
+        cloudTransactions = qsnap.docs.map((d) => d.data());
+        setSync(qsnap.metadata.hasPendingWrites || qsnap.metadata.fromCache ? "pending" : "ok");
+        applyCloudState();
+      }, () => setSync("error"));
+
+      renderAll();
     });
-    await signInAnonymously(auth);
+    await signInAnonymously(authInstance);
   } catch (e) { console.error("Firebase init failed", e); }
+}
+
+function accountLabel() {
+  if (!cloudUser) return "Non connesso";
+  if (cloudUser.isAnonymous) return "Modalità anonima (solo su questo dispositivo)";
+  return cloudUser.email || "Account collegato";
 }
 
 function walletBalance(w) { return walletBalanceExcluding(w, null); }
 function walletBalanceExcluding(w, excludeId) {
   const sum = data.transactions.reduce((acc, t) => {
     if (t.id === excludeId) return acc;
-    if (t.type === "trasferimento") { if (t.fromWallet === w.name) return acc - t.amount; if (t.toWallet === w.name) return acc + t.amount; return acc; }
+    if (t.type === "trasferimento") { if (t.fromWallet === w.name) return acc - t.amount; if (t.toWallet === w.name) return acc + (t.toAmount != null ? t.toAmount : t.amount); return acc; }
     return t.wallet === w.name ? acc + (t.type === "entrata" ? t.amount : -t.amount) : acc;
   }, 0); return (w.initialBalance || 0) + sum;
 }
+function walletByName(name) { return data.wallets.find((w) => w.name === name); }
+function walletHasTransactions(name) { return data.transactions.some((t) => t.wallet === name || t.fromWallet === name || t.toWallet === name); }
+function txCurrency(t) { if (t.currency) return t.currency; const w = walletByName(t.wallet); return (w && w.currency) || "EUR"; }
+function amountInEUR(t) { if (t.type === "trasferimento") return 0; return toEUR(t.amount, txCurrency(t)); }
 
 const ICONS = {
   home: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="4" ry="4"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>`,
@@ -665,15 +877,19 @@ function renderAll() {
     const app = document.getElementById("app");
     if (lockEnabled && !appUnlocked) { app.innerHTML = renderLockScreenHTML(); bindLockScreenEvents(); return; }
     const configured = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("INSERISCI");
+    const editingTx = editingId ? data.transactions.find((t) => t.id === editingId) : null;
+    const stoppedSeriesIds = data.stoppedSeriesIds || [];
+    const showStopSeries = !!(editingTx && editingTx.frequency === "fissa" && editingTx.seriesId && !stoppedSeriesIds.includes(editingTx.seriesId));
     const { start, end } = getPeriodRange(period, offset);
     const periodLabel = formatPeriodLabel(period, start);
     const inPeriod = data.transactions.filter((t) => { const d = parseISODate(t.date); return d >= start && d < end; });
-    const totalEntrate = inPeriod.filter((t) => t.type === "entrata").reduce((a, t) => a + t.amount, 0);
-    const totalUscite = inPeriod.filter((t) => t.type === "uscita").reduce((a, t) => a + t.amount, 0);
+    const totalEntrate = inPeriod.filter((t) => t.type === "entrata").reduce((a, t) => a + amountInEUR(t), 0);
+    const totalUscite = inPeriod.filter((t) => t.type === "uscita").reduce((a, t) => a + amountInEUR(t), 0);
     const saldo = totalEntrate - totalUscite;
+    const hasMultiCurrency = data.wallets.some((w) => (w.currency || "EUR") !== "EUR");
     const prevRange = getPeriodRange(period, offset - 1);
     const prevTxs = data.transactions.filter((t) => { const d = parseISODate(t.date); return d >= prevRange.start && d < prevRange.end; });
-    const prevSaldo = prevTxs.filter((t) => t.type === "entrata").reduce((a, t) => a + t.amount, 0) - prevTxs.filter((t) => t.type === "uscita").reduce((a, t) => a + t.amount, 0);
+    const prevSaldo = prevTxs.filter((t) => t.type === "entrata").reduce((a, t) => a + amountInEUR(t), 0) - prevTxs.filter((t) => t.type === "uscita").reduce((a, t) => a + amountInEUR(t), 0);
     const delta = saldo - prevSaldo;
     const incomeBreakdown = buildBreakdown(inPeriod.filter((t) => t.type === "entrata"));
     const expenseBreakdown = buildBreakdown(inPeriod.filter((t) => t.type === "uscita"));
@@ -690,7 +906,7 @@ function renderAll() {
       const off = offset - (5 - i);
       const r = getPeriodRange(period, off);
       const txs = data.transactions.filter((t) => { const d = parseISODate(t.date); return d >= r.start && d < r.end; });
-      return { label: formatPeriodShortLabel(period, r.start), entrate: txs.filter((t) => t.type === "entrata").reduce((a, t) => a + t.amount, 0), uscite: txs.filter((t) => t.type === "uscita").reduce((a, t) => a + t.amount, 0) };
+      return { label: formatPeriodShortLabel(period, r.start), entrate: txs.filter((t) => t.type === "entrata").reduce((a, t) => a + amountInEUR(t), 0), uscite: txs.filter((t) => t.type === "uscita").reduce((a, t) => a + amountInEUR(t), 0) };
     });
 
     app.innerHTML = `
@@ -717,7 +933,7 @@ function renderAll() {
         <div class="hero-balance-card">
           <div class="glow-wrap"></div>
           <div class="hero-card-content">
-            <p class="hero-balance-label">Bilancio Totale</p>
+            <p class="hero-balance-label">Bilancio Totale${hasMultiCurrency ? ` <span style="opacity:.65; font-weight:500; text-transform:none;">(≈ EUR)</span>` : ""}</p>
             <span id="heroBalance" class="hero-balance-value amount-blur ${saldo < 0 ? "neg" : "pos"}">${formatCurrency(saldo)}</span>
             <div><span class="hero-delta ${delta < 0 ? "neg" : "pos"}">${delta >= 0 ? "▲" : "▼"} <span class="amount-blur">${formatCurrency(Math.abs(delta))}</span></span></div>
             
@@ -734,8 +950,9 @@ function renderAll() {
             <div class="wallet-tab-wrap">
               <button type="button" class="wallet-stub ${activeWalletEdit === w.id ? "wallet-stub-active" : ""}" data-wallet="${w.id}"
                 style="--wc: ${currentTheme === 'expert' ? '#000' : PALETTE[i % PALETTE.length]}">
-                <span class="wallet-stub-name">${esc(w.name)}</span>
-                <span class="wallet-stub-balance amount-blur">${formatCurrency(walletBalance(w))}</span>
+                ${(w.currency && w.currency !== "EUR") ? `<span class="wallet-stub-currency">${w.currency}</span>` : ""}
+                <span class="wallet-stub-name">${WALLET_EMOJI[i % WALLET_EMOJI.length]} ${esc(w.name)}</span>
+                <span class="wallet-stub-balance amount-blur">${formatCurrency(walletBalance(w), w.currency || "EUR")}</span>
               </button>
             </div>`).join("")}
           <div class="wallet-tab-wrap"><button type="button" class="wallet-add-stub" id="btnAddWallet">+</button></div>
@@ -747,7 +964,7 @@ function renderAll() {
       <div class="app-section${currentSection === "nuovo" ? " active" : ""}" data-section="nuovo">
         <h2 class="section-heading">Nuovo Movimento</h2>
         <form id="txForm">
-          <div class="segmented">
+          <div class="segmented type-segmented">
             <button type="button" data-type="entrata" class="${txType === "entrata" ? "seg-active seg-income" : ""}">Entrata</button>
             <button type="button" data-type="uscita" class="${txType === "uscita" ? "seg-active seg-expense" : ""}">Uscita</button>
             <button type="button" data-type="trasferimento" class="${txType === "trasferimento" ? "seg-active seg-transfer" : ""}">Trasferimento</button>
@@ -756,7 +973,7 @@ function renderAll() {
           <div class="ios-list">
             <div class="ios-list-item">
               <label>Importo</label>
-              <div class="amount-wrap"><span class="currency-prefix">€</span><input type="number" min="0" step="0.01" id="txAmount" placeholder="0.00" required></div>
+              <div class="amount-wrap"><span class="currency-prefix" id="txAmountPrefix">€</span><input type="number" min="0" step="0.01" id="txAmount" placeholder="0.00" required></div>
             </div>
             <div class="ios-list-item">
               <label>Data</label>
@@ -773,6 +990,10 @@ function renderAll() {
               <div class="ios-list-item">
                 <label><span class="select-color-dot" id="txToWalletDot" style="background:${PALETTE[1]}"></span> A</label>
                 <select id="txToWallet" required ${data.wallets.length === 0 ? "disabled" : ""}>${walletOptionsHTML(data.wallets.length > 1 ? 1 : 0)}</select>
+              </div>
+              <div class="ios-list-item" id="txConvertRow" style="display:none; flex-direction:column; align-items:flex-start; gap:6px;">
+                <label style="margin-bottom:0;">Conversione</label>
+                <span id="txConvertPreview" class="convert-preview"></span>
               </div>
             ` : `
               <div class="ios-list-item">
@@ -801,6 +1022,7 @@ function renderAll() {
           <div id="txFormError" class="form-error" style="display:none"></div>
           <button type="submit" class="btn-primary" id="txSubmit" ${data.wallets.length === 0 ? "disabled" : ""}>${editingId ? "Salva Modifiche" : "Registra Movimento"}</button>
           ${editingId ? `<button type="button" class="btn-ghost" id="txCancelEdit">Annulla</button>` : ""}
+          ${showStopSeries ? `<button type="button" class="btn-ghost btn-danger" id="btnStopSeries" style="margin-top:12px;">${seriesStopArmed === editingId ? "Conferma: interrompi la serie" : "Interrompi questa spesa fissa"}</button>` : ""}
         </form>
       </div>
 
@@ -824,7 +1046,7 @@ function renderAll() {
         
         <div class="filters">
           <input type="search" id="filterSearchInput" class="filter-search" placeholder="🔎 Cerca nelle note..." value="${esc(filterSearch)}">
-          <select id="filterWalletSel"><option value="all">Tutti i conti</option>${data.wallets.map((w, i) => `<option value="${esc(w.name)}" ${filterWallet === w.name ? "selected" : ""}>${WALLET_EMOJI[i % WALLET_EMOJI.length]} ${esc(w.name)}</option>`).join("")}</select>
+          <select id="filterWalletSel"><option value="all">Tutti i conti</option>${data.wallets.map((w, i) => `<option value="${esc(w.name)}" ${filterWallet === w.name ? "selected" : ""}>${WALLET_EMOJI[i % WALLET_EMOJI.length]} ${esc(w.name)}${w.currency && w.currency !== "EUR" ? ` (${w.currency})` : ""}</option>`).join("")}</select>
           <select id="filterCategorySel"><option value="all">Tutte le categorie</option>${allCats.map((c) => `<option value="${esc(c)}" ${filterCategory === c ? "selected" : ""}>${categoryEmoji(c)} ${esc(c)}</option>`).join("")}</select>
           <button type="button" class="btn-filter" id="btnExportCsv">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -863,7 +1085,7 @@ function renderAll() {
             <button type="button" class="btn-ghost" id="btnToggleCategories" style="text-align:left; padding:18px 22px; font-size:17px; border:none; box-shadow:none;">${categoriesOpen ? "Chiudi Menu Categorie" : "Modifica Categorie..."}</button>
           </div>
           ${categoriesOpen ? `
-            <div style="padding:16px 22px; background:rgba(0,0,0,0.02);">
+            <div class="panel-reveal" style="padding:16px 22px; background:var(--panel-tint);">
               <h3 style="font-size:14px; margin:0 0 12px; color:var(--text-sec); text-transform:uppercase; letter-spacing:0.5px;">Entrate</h3>
               <div class="chip-list">
                 ${data.categories.entrata.map((c) => `<span class="chip">${catBadge(c)}${esc(c)}<button type="button" data-rmcat="entrata|${esc(c)}">✕</button></span>`).join("")}
@@ -888,7 +1110,7 @@ function renderAll() {
           </div>
           ${lockEnabled && !lockDisableOpen ? `<p class="lock-status-hint">Blocco attivo. L'app si aprirà con Face ID o con la password di riserva.</p>` : ""}
           ${lockSetupOpen ? `
-            <div style="padding:16px 22px; background:rgba(0,0,0,0.02);">
+            <div class="panel-reveal" style="padding:16px 22px; background:var(--panel-tint);">
               <p class="lock-status-hint">Imposta una password di riserva da usare se Face ID non funziona.</p>
               <div class="ios-list" style="margin:12px 0; box-shadow:none;">
                 <div class="ios-list-item"><label>Password</label><input type="password" id="lockSetupPass1" placeholder="Min. 4 caratteri"></div>
@@ -902,7 +1124,7 @@ function renderAll() {
             </div>
           ` : ""}
           ${lockDisableOpen ? `
-            <div style="padding:16px 22px; background:rgba(0,0,0,0.02);">
+            <div class="panel-reveal" style="padding:16px 22px; background:var(--panel-tint);">
               <p class="lock-status-hint">Inserisci la password per disattivare il blocco.</p>
               <div class="ios-list" style="margin:12px 0; box-shadow:none;">
                 <div class="ios-list-item"><label>Password</label><input type="password" id="lockDisablePass" placeholder="Password attuale"></div>
@@ -911,6 +1133,49 @@ function renderAll() {
               <div class="wallet-edit-actions">
                 <button type="button" class="btn-small" style="background:rgba(255,59,48,0.15); color:var(--ios-red);" id="lockDisableConfirm">Conferma Disattivazione</button>
                 <button type="button" class="btn-small btn-ghost" id="lockDisableCancel">Annulla</button>
+              </div>
+            </div>
+          ` : ""}
+        </div>
+
+        <h2 class="section-heading" style="margin-top:32px;">Account</h2>
+        <div class="ios-list">
+          <div class="ios-list-item" style="padding:18px 22px; display:block;">
+            <p class="lock-status-hint" style="padding:0; margin:0 0 2px;">${cloudUser && !cloudUser.isAnonymous ? "Connesso come" : "Stato attuale"}</p>
+            <p style="margin:0; font-weight:700; color:var(--text-main);">${esc(accountLabel())}</p>
+          </div>
+          ${cloudUser && !cloudUser.isAnonymous ? `
+            <div class="ios-list-item" style="padding:0;"><button type="button" class="btn-ghost btn-danger" id="btnSignOut" style="text-align:left; padding:18px 22px; border:none; box-shadow:none;">Esci dall'account</button></div>
+          ` : `
+            <div class="ios-list-item" style="padding:0;"><button type="button" class="btn-ghost" id="btnOpenSignup" style="text-align:left; padding:18px 22px; border:none; box-shadow:none;">Crea un account (Email e Password)</button></div>
+            <div class="ios-list-item" style="padding:0;"><button type="button" class="btn-ghost" id="btnOpenSignin" style="text-align:left; padding:18px 22px; border:none; box-shadow:none;">Accedi a un account esistente</button></div>
+          `}
+          ${accountFormOpen === "signup" ? `
+            <div class="panel-reveal" style="padding:16px 22px; background:var(--panel-tint);">
+              <p class="lock-status-hint" style="padding:0 0 10px;">Crea un account per portare i tuoi dati su altri dispositivi: quelli già presenti su questo dispositivo verranno collegati al nuovo account, non persi.</p>
+              <div class="ios-list" style="margin:0 0 12px; box-shadow:none;">
+                <div class="ios-list-item"><label>Email</label><input type="email" id="accountEmail" placeholder="tu@esempio.com" autocomplete="email" value="${esc(accountDraft.email)}"></div>
+                <div class="ios-list-item"><label>Password</label><input type="password" id="accountPass1" placeholder="Min. 6 caratteri" autocomplete="new-password" value="${esc(accountDraft.pass1)}"></div>
+                <div class="ios-list-item"><label>Conferma</label><input type="password" id="accountPass2" placeholder="Ripeti password" autocomplete="new-password" value="${esc(accountDraft.pass2)}"></div>
+              </div>
+              ${accountError ? `<p class="form-error" style="padding:0 0 10px;">${esc(accountError)}</p>` : ""}
+              <div class="wallet-edit-actions" style="padding:0;">
+                <button type="button" class="btn-small" id="accountSignupConfirm" ${accountBusy ? "disabled" : ""}>${accountBusy ? "Attendere..." : "Crea account"}</button>
+                <button type="button" class="btn-small btn-ghost" style="border:none; box-shadow:none;" id="accountFormCancel">Annulla</button>
+              </div>
+            </div>
+          ` : ""}
+          ${accountFormOpen === "signin" ? `
+            <div class="panel-reveal" style="padding:16px 22px; background:var(--panel-tint);">
+              <p class="lock-status-hint" style="padding:0 0 10px;">Accedendo, i dati di questo dispositivo verranno sostituiti da quelli salvati sul tuo account.</p>
+              <div class="ios-list" style="margin:0 0 12px; box-shadow:none;">
+                <div class="ios-list-item"><label>Email</label><input type="email" id="accountEmail" placeholder="tu@esempio.com" autocomplete="email" value="${esc(accountDraft.email)}"></div>
+                <div class="ios-list-item"><label>Password</label><input type="password" id="accountPass1" placeholder="Password" autocomplete="current-password" value="${esc(accountDraft.pass1)}"></div>
+              </div>
+              ${accountError ? `<p class="form-error" style="padding:0 0 10px;">${esc(accountError)}</p>` : ""}
+              <div class="wallet-edit-actions" style="padding:0;">
+                <button type="button" class="btn-small" id="accountSigninConfirm" ${accountBusy ? "disabled" : ""}>${accountBusy ? "Attendere..." : "Accedi"}</button>
+                <button type="button" class="btn-small btn-ghost" style="border:none; box-shadow:none;" id="accountFormCancel">Annulla</button>
               </div>
             </div>
           ` : ""}
@@ -951,7 +1216,7 @@ function renderAll() {
 
 function walletOptionsHTML(defaultIndex) {
   if (data.wallets.length === 0) return `<option value="">Nessun portafoglio</option>`;
-  return data.wallets.map((w, i) => `<option value="${esc(w.name)}" ${i === defaultIndex ? "selected" : ""}>${WALLET_EMOJI[i % WALLET_EMOJI.length]} ${esc(w.name)}</option>`).join("");
+  return data.wallets.map((w, i) => `<option value="${esc(w.name)}" ${i === defaultIndex ? "selected" : ""}>${WALLET_EMOJI[i % WALLET_EMOJI.length]} ${esc(w.name)}${w.currency && w.currency !== "EUR" ? ` (${w.currency})` : ""}</option>`).join("");
 }
 function categoryOptionsHTML(list) {
   return list.map((c) => `<option value="${esc(c)}">${categoryEmoji(c)} ${esc(c)}</option>`).join("");
@@ -962,22 +1227,26 @@ function renderTxRow(t, index = 0) {
   const delay = index * 0.03;
   let content = "";
   if (t.type === "trasferimento") {
+    const fromCur = t.fromCurrency || "EUR";
+    const toCur = t.toCurrency || fromCur;
+    const amountLabel = fromCur === toCur ? formatCurrency(t.amount, fromCur) : `${formatCurrency(t.amount, fromCur)} → ${formatCurrency(t.toAmount != null ? t.toAmount : t.amount, toCur)}`;
     content = `
       <div class="tx-main">
         <span class="tx-cat" style="color:var(--ios-orange)"><span class="cat-icon" style="background:var(--ios-orange)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12h16M14 6l6 6-6 6M10 18l-6-6 6-6"/></svg></span>Trasferimento</span>
         <div class="tx-meta"><span>${formatShortDate(t.date)}</span><span>${esc(t.fromWallet)} → ${esc(t.toWallet)}</span>${t.note ? `<span>&bull; ${esc(t.note)}</span>` : ""}</div>
       </div>
       <div class="tx-actions">
-        <span class="tx-amt amount-blur" style="color:var(--text-main)">${formatCurrency(t.amount)}</span>
+        <span class="tx-amt amount-blur" style="color:var(--text-main)">${amountLabel}</span>
       </div>`;
   } else {
+    const cur = txCurrency(t);
     content = `
       <div class="tx-main">
         <span class="tx-cat">${catBadge(t.category)}${esc(t.category)}</span>
         <div class="tx-meta"><span>${formatShortDate(t.date)}</span><span>&bull; ${esc(t.wallet)}</span>${t.frequency ? `<span class="tag">${FREQ_LABELS[t.frequency]}</span>` : ""}${t.auto ? `<span class="tag" title="Generato automaticamente">Auto</span>` : ""}${t.note ? `<span>&bull; ${esc(t.note)}</span>` : ""}</div>
       </div>
       <div class="tx-actions">
-        <span class="tx-amt amount-blur ${t.type === "entrata" ? "pos" : "neg"}">${t.type === "entrata" ? "+" : "−"}${formatCurrency(t.amount)}</span>
+        <span class="tx-amt amount-blur ${t.type === "entrata" ? "pos" : "neg"}">${t.type === "entrata" ? "+" : "−"}${formatCurrency(t.amount, cur)}</span>
       </div>`;
   }
 
@@ -993,22 +1262,36 @@ function renderTxRow(t, index = 0) {
   </div>`;
 }
 
+function currencySegHTML(id, current) {
+  return `<div class="segmented compact currency-seg" id="${id}" data-value="${current}" style="max-width:160px; margin-bottom:0;">
+    <button type="button" class="${current === "EUR" ? "seg-active" : ""}" data-cur="EUR">€ EUR</button>
+    <button type="button" class="${current === "USD" ? "seg-active" : ""}" data-cur="USD">$ USD</button>
+  </div>`;
+}
+
 function renderWalletPanel() {
   if (activeWalletEdit) {
     const w = data.wallets.find((x) => x.id === activeWalletEdit);
-    if (w) return `<div class="ios-list" style="margin-top:20px; animation: slideUpFade 0.3s var(--ease-spring);">
+    if (w) {
+      const cur = w.currency || "EUR";
+      const locked = walletHasTransactions(w.name);
+      return `<div class="ios-list" style="margin-top:20px; animation: slideUpFade 0.3s var(--ease-spring);">
       <div class="ios-list-item"><label>Nome</label><input type="text" id="editWalletName" value="${esc(w.name)}"></div>
-      <div class="ios-list-item"><label>Iniziale</label><div class="amount-wrap"><span class="currency-prefix">€</span><input type="number" step="0.01" id="editWalletInitial" value="${w.initialBalance || 0}"></div></div>
+      <div class="ios-list-item"><label>Iniziale</label><div class="amount-wrap"><span class="currency-prefix" id="editWalletCurrencyPrefix">${CURRENCIES[cur].symbol}</span><input type="number" step="0.01" id="editWalletInitial" value="${w.initialBalance || 0}"></div></div>
+      <div class="ios-list-item"><label>Valuta</label>${locked ? `<span style="font-weight:700; color:var(--text-sec);">${CURRENCIES[cur].symbol} ${cur}</span>` : currencySegHTML("editWalletCurrencySeg", cur)}</div>
+      ${locked ? `<p class="lock-status-hint" style="padding:0 22px 16px;">Valuta non modificabile: il portafoglio ha già movimenti registrati.</p>` : ""}
       <div class="wallet-edit-actions">
         <button type="button" class="btn-small" id="saveWalletEdit">Salva</button>
         <button type="button" class="btn-small btn-ghost" style="border:none; box-shadow:none;" id="closeWalletEdit">Chiudi</button>
         <button type="button" class="btn-small" style="background:rgba(255,59,48,0.15); color:var(--ios-red);" id="deleteWalletBtn">${walletDeleteArmed === w.id ? "Conferma" : "Elimina"}</button>
       </div></div>`;
+    }
   }
   if (walletFormOpen) {
     return `<div class="ios-list" style="margin-top:20px; animation: slideUpFade 0.3s var(--ease-spring);">
       <div class="ios-list-item"><label>Nome</label><input type="text" id="newWalletName" placeholder="Contanti"></div>
-      <div class="ios-list-item"><label>Iniziale</label><div class="amount-wrap"><span class="currency-prefix">€</span><input type="number" step="0.01" id="newWalletInitial" placeholder="0.00"></div></div>
+      <div class="ios-list-item"><label>Iniziale</label><div class="amount-wrap"><span class="currency-prefix" id="newWalletCurrencyPrefix">€</span><input type="number" step="0.01" id="newWalletInitial" placeholder="0.00"></div></div>
+      <div class="ios-list-item"><label>Valuta</label>${currencySegHTML("newWalletCurrencySeg", "EUR")}</div>
       <div class="wallet-edit-actions">
         <button type="button" class="btn-small" id="addWalletBtn">Aggiungi</button>
         <button type="button" class="btn-small btn-ghost" style="border:none; box-shadow:none;" id="cancelAddWallet">Annulla</button>
@@ -1041,7 +1324,8 @@ function drawCharts(incomeBreakdown, expenseBreakdown, trendData) {
   const chartOptions = { 
     plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => formatCurrency(c.parsed) } } }, 
     cutout: "75%",
-    animation: { duration: 1200, easing: 'easeOutQuart' },
+    animation: { duration: 1600, easing: 'easeInOutCubic', animateRotate: true, animateScale: true },
+    transitions: { active: { animation: { duration: 400, easing: 'easeOutCubic' } } },
     elements: { arc: { borderWidth: isDark? 0:1, borderColor: isDark?'#000':'#FFF' } }
   };
 
@@ -1069,6 +1353,46 @@ function drawCharts(incomeBreakdown, expenseBreakdown, trendData) {
   }
 }
 
+function bindCurrencySeg(segId, prefixId) {
+  const seg = document.getElementById(segId);
+  if (!seg) return;
+  seg.querySelectorAll("button").forEach((btn) => btn.onclick = () => {
+    haptic('light');
+    seg.dataset.value = btn.dataset.cur;
+    seg.querySelectorAll("button").forEach((b) => b.classList.toggle("seg-active", b === btn));
+    const prefixEl = document.getElementById(prefixId);
+    if (prefixEl) prefixEl.textContent = CURRENCIES[btn.dataset.cur].symbol;
+  });
+}
+
+function updateCurrencyUI() {
+  if (currentSection !== "nuovo") return;
+  const prefixEl = document.getElementById("txAmountPrefix");
+  const amountInput = document.getElementById("txAmount");
+  if (txType === "trasferimento") {
+    const fromSel = document.getElementById("txFromWallet");
+    const toSel = document.getElementById("txToWallet");
+    if (!fromSel || !toSel) return;
+    const fromCur = (walletByName(fromSel.value) || {}).currency || "EUR";
+    const toCur = (walletByName(toSel.value) || {}).currency || "EUR";
+    if (prefixEl) prefixEl.textContent = CURRENCIES[fromCur].symbol;
+    const row = document.getElementById("txConvertRow");
+    const preview = document.getElementById("txConvertPreview");
+    if (!row || !preview) return;
+    if (fromCur === toCur) { row.style.display = "none"; return; }
+    row.style.display = "";
+    const amt = Number(String(amountInput ? amountInput.value : "").replace(",", ".")) || 0;
+    const converted = convert(amt, fromCur, toCur);
+    const rate = convert(1, fromCur, toCur);
+    preview.innerHTML = `${formatCurrency(amt, fromCur)} ≈ <b>${formatCurrency(converted, toCur)}</b><br><span style="font-size:12px; opacity:.65;">Tasso: 1 ${fromCur} = ${rate.toFixed(4)} ${toCur}</span>`;
+  } else {
+    const walSel = document.getElementById("txWallet");
+    if (!walSel || !prefixEl) return;
+    const cur = (walletByName(walSel.value) || {}).currency || "EUR";
+    prefixEl.textContent = CURRENCIES[cur].symbol;
+  }
+}
+
 function bindEvents() {
   txDeleteArmed = null;
   document.querySelectorAll(".tab-bar button").forEach((b) => b.onclick = () => { haptic('light'); currentSection = b.dataset.section; renderAll(); });
@@ -1085,14 +1409,18 @@ function bindEvents() {
     renderAll();
   });
   const btnAddWallet = document.getElementById("btnAddWallet"); if (btnAddWallet) btnAddWallet.onclick = () => { haptic('light'); activeWalletEdit = null; walletFormOpen = !walletFormOpen; renderAll(); };
+  bindCurrencySeg("newWalletCurrencySeg", "newWalletCurrencyPrefix");
+  bindCurrencySeg("editWalletCurrencySeg", "editWalletCurrencyPrefix");
   const addWalletBtn = document.getElementById("addWalletBtn");
   if (addWalletBtn) addWalletBtn.onclick = () => {
     const name = document.getElementById("newWalletName").value.trim();
     if (!name) return;
     const initialBalance = Number(document.getElementById("newWalletInitial").value) || 0;
+    const curSeg = document.getElementById("newWalletCurrencySeg");
+    const currency = curSeg ? curSeg.dataset.value : "EUR";
     walletFormOpen = false;
     haptic('success');
-    persist({ ...data, wallets: [...data.wallets, { id: genId(), name, initialBalance }] });
+    persist({ ...data, wallets: [...data.wallets, { id: genId(), name, initialBalance, currency }] });
   };
   const cancelAddWallet = document.getElementById("cancelAddWallet"); if (cancelAddWallet) cancelAddWallet.onclick = () => { walletFormOpen = false; renderAll(); };
   const saveWalletEdit = document.getElementById("saveWalletEdit");
@@ -1101,7 +1429,9 @@ function bindEvents() {
     const newName = document.getElementById("editWalletName").value.trim();
     if (!w || !newName) return;
     const newInitial = Number(document.getElementById("editWalletInitial").value) || 0;
-    const wallets = data.wallets.map((x) => x.id === w.id ? { ...x, name: newName, initialBalance: newInitial } : x);
+    const curSeg = document.getElementById("editWalletCurrencySeg");
+    const newCurrency = curSeg ? curSeg.dataset.value : (w.currency || "EUR");
+    const wallets = data.wallets.map((x) => x.id === w.id ? { ...x, name: newName, initialBalance: newInitial, currency: newCurrency } : x);
     const transactions = newName !== w.name ? data.transactions.map((t) => {
       if (t.wallet === w.name) return { ...t, wallet: newName };
       if (t.type === "trasferimento") {
@@ -1126,7 +1456,7 @@ function bindEvents() {
     persist({ ...data, wallets });
   };
 
-  document.querySelectorAll(".segmented button").forEach((b) => {
+  document.querySelectorAll(".type-segmented button").forEach((b) => {
     if(!b.hasAttribute('onclick')) { b.onclick = () => { haptic('light'); txType = b.dataset.type; renderAll(); }; }
   });
 
@@ -1143,11 +1473,14 @@ function bindEvents() {
       const idx = data.wallets.findIndex((w) => w.name === e.target.value);
       const dot = document.getElementById(dotId);
       if (dot) dot.style.background = idx >= 0 ? PALETTE[idx % PALETTE.length] : "var(--separator)";
+      updateCurrencyUI();
     };
   }
   bindWalletDot("txWallet", "txWalletDot");
   bindWalletDot("txFromWallet", "txFromWalletDot");
   bindWalletDot("txToWallet", "txToWalletDot");
+  const txAmountInput = document.getElementById("txAmount");
+  if (txAmountInput) txAmountInput.oninput = () => updateCurrencyUI();
 
   function showFormError(msg) { haptic('heavy'); const el = document.getElementById("txFormError"); if (el) { el.textContent = msg; el.style.display = "block"; } }
   function hideFormError() { const el = document.getElementById("txFormError"); if (el) el.style.display = "none"; }
@@ -1165,13 +1498,19 @@ function bindEvents() {
       const toWallet = document.getElementById("txToWallet").value;
       if (!fromWallet || !toWallet) return;
       if (fromWallet === toWallet) { showFormError("Scegli due conti diversi."); return; }
-      payload = { type: "trasferimento", amount, fromWallet, toWallet, date: dateVal, note };
+      const fromCurrency = (walletByName(fromWallet) || {}).currency || "EUR";
+      const toCurrency = (walletByName(toWallet) || {}).currency || "EUR";
+      const toAmount = fromCurrency === toCurrency ? amount : Math.round(convert(amount, fromCurrency, toCurrency) * 100) / 100;
+      payload = { type: "trasferimento", amount, toAmount, fromCurrency, toCurrency, fromWallet, toWallet, date: dateVal, note };
     } else {
       const category = document.getElementById("txCategory").value;
       const wallet = document.getElementById("txWallet").value;
       const frequency = txType === "uscita" ? document.getElementById("txFrequency").value : null;
       if (!category || !wallet) return;
-      payload = { type: txType, amount, category, wallet, frequency, date: dateVal, note };
+      const currency = (walletByName(wallet) || {}).currency || "EUR";
+      const existingTx = editingId ? data.transactions.find((t) => t.id === editingId) : null;
+      const seriesId = frequency === "fissa" ? ((existingTx && existingTx.seriesId) || genId()) : undefined;
+      payload = { type: txType, amount, category, wallet, currency, frequency, seriesId, date: dateVal, note };
     }
     let transactions;
     if (editingId) { transactions = data.transactions.map((t) => t.id === editingId ? { id: t.id, ...payload } : t); editingId = null; }
@@ -1185,6 +1524,17 @@ function bindEvents() {
     flashHero();
   };
   const txCancelEdit = document.getElementById("txCancelEdit"); if (txCancelEdit) txCancelEdit.onclick = () => { editingId = null; renderAll(); };
+  const btnStopSeries = document.getElementById("btnStopSeries");
+  if (btnStopSeries) btnStopSeries.onclick = () => {
+    haptic('heavy');
+    const et = data.transactions.find((t) => t.id === editingId);
+    if (!et || !et.seriesId) return;
+    if (seriesStopArmed !== editingId) { seriesStopArmed = editingId; renderAll(); setTimeout(() => { if (seriesStopArmed === editingId) { seriesStopArmed = null; renderAll(); } }, 3000); return; }
+    seriesStopArmed = null;
+    const stoppedSeriesIds = [...(data.stoppedSeriesIds || []), et.seriesId];
+    persist({ ...data, stoppedSeriesIds });
+    showImportMessage("ok", "Serie interrotta: non verranno generati altri movimenti fissi futuri per questa spesa.");
+  };
 
   document.querySelectorAll("[data-edit]").forEach((b) => b.onclick = () => {
     const t = data.transactions.find((x) => x.id === b.dataset.edit);
@@ -1304,6 +1654,70 @@ function bindEvents() {
     haptic('success');
     renderAll();
   };
+
+  const btnOpenSignup = document.getElementById("btnOpenSignup"); if (btnOpenSignup) btnOpenSignup.onclick = () => { haptic('light'); accountFormOpen = "signup"; accountError = null; accountDraft = { email: "", pass1: "", pass2: "" }; renderAll(); };
+  const btnOpenSignin = document.getElementById("btnOpenSignin"); if (btnOpenSignin) btnOpenSignin.onclick = () => { haptic('light'); accountFormOpen = "signin"; accountError = null; accountDraft = { email: "", pass1: "", pass2: "" }; renderAll(); };
+  const accountFormCancel = document.getElementById("accountFormCancel"); if (accountFormCancel) accountFormCancel.onclick = () => { accountFormOpen = null; accountError = null; renderAll(); };
+  const accountEmailInput = document.getElementById("accountEmail"); if (accountEmailInput) accountEmailInput.oninput = (e) => { accountDraft.email = e.target.value; };
+  const accountPass1Input = document.getElementById("accountPass1"); if (accountPass1Input) accountPass1Input.oninput = (e) => { accountDraft.pass1 = e.target.value; };
+  const accountPass2Input = document.getElementById("accountPass2"); if (accountPass2Input) accountPass2Input.oninput = (e) => { accountDraft.pass2 = e.target.value; };
+
+  const accountSignupConfirm = document.getElementById("accountSignupConfirm");
+  if (accountSignupConfirm) accountSignupConfirm.onclick = async () => {
+    const email = document.getElementById("accountEmail").value.trim();
+    const p1 = document.getElementById("accountPass1").value;
+    const p2 = document.getElementById("accountPass2").value;
+    if (!email || !email.includes("@")) { accountError = "Inserisci un'email valida."; renderAll(); return; }
+    if (!p1 || p1.length < 6) { accountError = "La password deve avere almeno 6 caratteri."; renderAll(); return; }
+    if (p1 !== p2) { accountError = "Le password non coincidono."; renderAll(); return; }
+    if (!authInstance || !authFns || !authInstance.currentUser) { accountError = "Servizio cloud non disponibile."; renderAll(); return; }
+    accountBusy = true; accountError = null; renderAll();
+    try {
+      const cred = authFns.EmailAuthProvider.credential(email, p1);
+      await authFns.linkWithCredential(authInstance.currentUser, cred);
+      accountFormOpen = null;
+      haptic('success');
+      showImportMessage("ok", "Account creato: i tuoi dati sono ora collegati a questo indirizzo email.");
+    } catch (e) {
+      if (e && e.code === "auth/email-already-in-use") accountError = "Questa email ha già un account: usa \"Accedi a un account esistente\".";
+      else if (e && e.code === "auth/operation-not-allowed") accountError = "Login con Email non abilitato su Firebase: vai in Console Firebase → Authentication → Sign-in method e attivalo.";
+      else if (e && e.code === "auth/weak-password") accountError = "Password troppo debole (minimo 6 caratteri).";
+      else accountError = "Impossibile creare l'account. Riprova.";
+    }
+    accountBusy = false; renderAll();
+  };
+
+  const accountSigninConfirm = document.getElementById("accountSigninConfirm");
+  if (accountSigninConfirm) accountSigninConfirm.onclick = async () => {
+    const email = document.getElementById("accountEmail").value.trim();
+    const p1 = document.getElementById("accountPass1").value;
+    if (!email || !p1) { accountError = "Inserisci email e password."; renderAll(); return; }
+    if (!authInstance || !authFns) { accountError = "Servizio cloud non disponibile."; renderAll(); return; }
+    accountBusy = true; accountError = null; renderAll();
+    try {
+      await authFns.signInWithEmailAndPassword(authInstance, email, p1);
+      accountFormOpen = null;
+      haptic('success');
+      showImportMessage("ok", "Accesso effettuato.");
+    } catch (e) {
+      if (e && e.code === "auth/operation-not-allowed") accountError = "Login con Email non abilitato su Firebase: vai in Console Firebase → Authentication → Sign-in method e attivalo.";
+      else accountError = "Email o password errati.";
+    }
+    accountBusy = false; renderAll();
+  };
+
+  const btnSignOut = document.getElementById("btnSignOut");
+  if (btnSignOut) btnSignOut.onclick = async () => {
+    if (!authInstance || !authFns) return;
+    haptic('light');
+    try {
+      data = { wallets: [], categories: { ...DEFAULT_CATEGORIES }, transactions: [] };
+      saveLocal();
+      await authFns.signOut(authInstance);
+      await authFns.signInAnonymously(authInstance);
+    } catch (e) { console.error("Sign-out failed", e); }
+    renderAll();
+  };
 }
 
 function flashHero() {
@@ -1318,11 +1732,12 @@ function csvField(v) {
   return /[;"\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 }
 function exportCSV() {
-  const header = ["Data", "Tipo", "Categoria", "Portafoglio", "Frequenza", "Importo", "Nota"];
+  const header = ["Data", "Tipo", "Categoria", "Portafoglio", "Frequenza", "Importo", "Valuta", "Nota"];
   const rows = data.transactions.slice().sort((a, b) => a.date.localeCompare(b.date)).map((t) => {
     let cat = t.type === 'trasferimento' ? 'Trasferimento' : (t.category || '');
     let wal = t.type === 'trasferimento' ? `${t.fromWallet} -> ${t.toWallet}` : (t.wallet || '');
-    return [t.date, t.type, cat, wal, t.frequency || "", t.amount.toFixed(2).replace(".", ","), t.note || ""].map(csvField);
+    let cur = t.type === 'trasferimento' ? `${t.fromCurrency || "EUR"}${t.toCurrency && t.toCurrency !== t.fromCurrency ? " -> " + t.toCurrency : ""}` : txCurrency(t);
+    return [t.date, t.type, cat, wal, t.frequency || "", t.amount.toFixed(2).replace(".", ","), cur, t.note || ""].map(csvField);
   });
   const csv = [header.map(csvField), ...rows].map((r) => r.join(";")).join("\r\n");
   downloadBlob(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }), "registro.csv");
